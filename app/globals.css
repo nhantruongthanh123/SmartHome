@@ -157,6 +157,37 @@ a {
   padding: 18px;
 }
 
+.stat-card {
+  min-height: 168px;
+}
+
+.stat-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+}
+
+.stat-icon.temperature {
+  background: #eaf2ff;
+}
+
+.stat-icon.humidity {
+  background: #e9faf3;
+}
+
+.stat-icon.light {
+  background: #fff4e8;
+}
+
 .stat-label {
   margin: 0;
   color: var(--muted);
@@ -164,9 +195,16 @@ a {
 }
 
 .stat-value {
-  margin: 8px 0;
-  font-size: 34px;
+  margin: 8px 0 6px;
+  font-size: 42px;
+  line-height: 1;
   font-weight: 800;
+}
+
+.stat-location {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 13px;
 }
 
 .badge {

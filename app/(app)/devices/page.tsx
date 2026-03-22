@@ -9,7 +9,7 @@ const defaultDevices = [
 export default function DevicePage() {
   return (
     <section>
-      <h2 className="page-title">Device Management</h2>
+      <h2 className="page-title"> Your devices </h2>
       <p className="page-subtitle">Control and monitor your smart home devices.</p>
 
       <div className="grid three">

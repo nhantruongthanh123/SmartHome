@@ -25,7 +25,7 @@ export default function DeviceCard({ name, note, defaultOn }: DeviceCardProps) {
         </button>
       </div>
 
-      <p className="page-subtitle">{note}</p>
+      <p className="page-subtitle"> Your device </p>
       <span className={`badge ${isOn ? "success" : "danger"}`}>{isOn ? "Active" : "Off"}</span>
     </article>
   );
