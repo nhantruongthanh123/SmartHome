@@ -1,21 +1,129 @@
+"use client";
+import React, { useState } from "react";
 import DeviceCard from "@/components/devices/DeviceCard";
+import { useSensorMQTT } from "@/src/hooks/useSensorMQTT";
+import { Sun, Wind, Droplets } from "lucide-react";
 
-const defaultDevices = [
-  { id: "lighting", name: "Smart Lighting", note: "Living room lights", isOn: true },
-  { id: "fan", name: "Cooling Fan", note: "Bedroom fan", isOn: false },
-  { id: "lock", name: "Main Door Lock", note: "Main entrance", isOn: true },
-];
+// --- Component con: Thanh trượt độ sáng có nhảy số ---
+function BrightnessSlider({
+  initialValue = 80,
+  onChange,
+}: {
+  initialValue?: number;
+  onChange?: (val: number) => void;
+}) {
+  const [value, setValue] = useState(initialValue);
 
-export default function DevicePage() {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = parseInt(e.target.value);
+    setValue(newVal);
+    if (onChange) onChange(newVal);
+  };
+
   return (
-    <section>
-      <h2 className="page-title"> Your devices </h2>
-      <p className="page-subtitle">Control and monitor your smart home devices.</p>
+    <div className="flex flex-col gap-2">
+      <div className="flex justify-between text-[13px] font-bold text-slate-400 uppercase">
+        <span>Manual Brightness</span>
+        <span className="text-blue-600 font-bold">{value}%</span>
+      </div>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        value={value}
+        onChange={handleChange}
+        className="w-full h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600 hover:accent-blue-700 transition-all"
+      />
+    </div>
+  );
+}
 
-      <div className="grid three">
-        {defaultDevices.map((device) => (
-          <DeviceCard key={device.id} name={device.name} note={device.note} defaultOn={device.isOn} />
-        ))}
+// --- Component chính: Trang quản lý thiết bị ---
+export default function DevicePage() {
+  const { toggleDevice, isConnected } = useSensorMQTT();
+
+  return (
+    <section className="flex flex-col gap-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">Your Devices</h2>
+          <p className="text-sm text-slate-500">
+            Manage and monitor all your smart modules in one place.
+          </p>
+        </div>
+        <span className="text-[10px] font-bold text-red-500 uppercase">
+          {isConnected ? "" : "Disconnected from Server"}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* THẺ 1: SMART LIGHTING */}
+        <DeviceCard
+          name="Smart Lighting"
+          icon={<Sun size={24} />}
+          onToggle={(status) =>
+            toggleDevice("led" as any, status ? "ON" : "OFF")
+          }
+        >
+          <div className="flex flex-col gap-4">
+            <BrightnessSlider
+              initialValue={80}
+              onChange={(val) => console.log("Brightness level:", val)}
+            />
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label className="text-[10px] font-bold text-slate-500 uppercase">
+                Enable Light Threshold
+              </label>
+            </div>
+          </div>
+        </DeviceCard>
+
+        {/* THẺ 2: COOLING FAN */}
+        <DeviceCard
+          name="Cooling Fan"
+          icon={<Wind size={24} />}
+          onToggle={(status) =>
+            toggleDevice("fan" as any, status ? "ON" : "OFF")
+          }
+        >
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label className="text-[10px] font-bold text-slate-500 uppercase">
+              Enable Auto Mode (28°C Threshold)
+            </label>
+          </div>
+        </DeviceCard>
+
+        {/* THẺ 3: SMART PUMP*/}
+        <DeviceCard
+          name="Smart Pump"
+          icon={<Droplets size={24} />}
+          onToggle={(status) =>
+            toggleDevice("pump" as any, status ? "ON" : "OFF")
+          }
+        >
+          <div className="flex flex-col gap-2">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Recent Activity
+            </p>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full" />
+              <p className="text-[10px] text-slate-500 font-medium">
+                Last run:{" "}
+                <span className="font-bold text-slate-700">Auto Mode</span> - 5
+                mins ago
+              </p>
+            </div>
+          </div>
+        </DeviceCard>
       </div>
     </section>
   );

@@ -2,41 +2,89 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const navItems = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/devices", label: "Device Management" },
-  { href: "/profile", label: "User Profile" },
-];
+import { LayoutDashboard, Cpu, User, Plus, Bell, Settings } from "lucide-react";
 
 export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="sidebar">
-      <div className="brand">
-        <div className="brand-badge" aria-hidden="true" />
-        <div>
-          <p className="brand-title">SmartHome</p>
-          <p className="brand-subtitle">Control Panel</p>
+    <aside className="w-64 h-screen bg-white border-r border-slate-100 flex flex-col p-6 gap-8 shrink-0">
+      {/* Logo Section */}
+      <div className="flex items-center gap-3 px-2">
+        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-200">
+          <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
         </div>
+        <h1 className="font-bold text-xl text-slate-800">SmartHome</h1>
       </div>
 
-      <nav aria-label="Main navigation">
-        <ul className="nav-list">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-
-            return (
-              <li key={item.href}>
-                <Link className={`nav-link${isActive ? " active" : ""}`} href={item.href}>
-                  {item.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+      {/* Main Navigation - Đã bọc thẻ Link */}
+      <nav className="flex flex-col gap-2">
+        <Link href="/dashboard">
+          <MenuItem
+            icon={<LayoutDashboard size={18} />}
+            label="Dashboard"
+            active={pathname === "/dashboard"}
+          />
+        </Link>
+        <Link href="/devices">
+          <MenuItem
+            icon={<Cpu size={18} />}
+            label="Device Management"
+            active={pathname === "/devices"}
+          />
+        </Link>
+        <Link href="/profile">
+          <MenuItem
+            icon={<User size={18} />}
+            label="User Profile"
+            active={pathname === "/profile"}
+          />
+        </Link>
       </nav>
+
+      {/* QUICK ACTIONS SECTION */}
+      <div className="mt-4">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-4">
+          Quick Actions
+        </p>
+        <nav className="flex flex-col gap-2">
+          <MenuItem icon={<Plus size={18} />} label="Add Device" />
+          <MenuItem icon={<Bell size={18} />} label="Notifications" />
+          <MenuItem icon={<Settings size={18} />} label="Settings" />
+        </nav>
+      </div>
+
+      {/* Footer / Version */}
+      <div className="mt-auto px-2">
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+          <p className="text-[10px] text-slate-400 text-center font-medium">
+            DADN - Nhom 17 v1.0
+          </p>
+        </div>
+      </div>
     </aside>
+  );
+}
+
+function MenuItem({
+  icon,
+  label,
+  active = false,
+}: {
+  icon: any;
+  label: string;
+  active?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 ${
+        active
+          ? "bg-blue-50 text-blue-600 shadow-sm"
+          : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+      }`}
+    >
+      {icon}
+      <span className="text-sm font-semibold">{label}</span>
+    </div>
   );
 }
