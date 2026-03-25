@@ -1,18 +1,22 @@
+// app/(app)/layout.tsx
 import Sidebar from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
 
-type AppLayoutProps = {
-  children: React.ReactNode;
-};
-
-export default function AppLayout({ children }: AppLayoutProps) {
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="app-shell">
+    <div className="flex h-screen bg-slate-50/50">
+      {/* 1. Sidebar bên trái - Chiếm chiều cao toàn màn hình */}
       <Sidebar />
-      <section className="content-area">
+
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 2. Topbar bên trên - Chứa Search và Profile */}
         <Topbar />
-        <main className="page-content">{children}</main>
-      </section>
+
+        {/* 3. Nội dung trang chính */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
