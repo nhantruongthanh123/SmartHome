@@ -8,7 +8,7 @@ export const MQTT_CONFIG = {
 
   // Định nghĩa tên các Feed (Khớp với trên Adafruit của bạn)
   feeds: {
-    temperature: 'bbc-temperature', 
+    temperature: 'bbc-temp', 
     humidity: 'bbc-humidity',      
     light: 'bbc-light',
     led: 'bbc-led',

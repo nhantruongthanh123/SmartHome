@@ -1,7 +1,9 @@
+// Đường dẫn: app/(app)/dashboard/page.tsx
 "use client";
 import React, { useEffect, useState } from "react";
-import { useSensorMQTT } from "@/src/hooks/useSensorMQTT";
-import SensorCard from "@/components/dashboard/StatCard";
+import { useSensorMQTT } from "@/src/hooks/useSensorMQTT"; 
+import SensorCard from "@/components/dashboard/StatCard"; 
+import SensorChart from "@/components/dashboard/SensorChart"; 
 import {
   Thermometer,
   Droplets,
@@ -9,58 +11,34 @@ import {
   LineChart as ChartIcon,
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
-
-const mockHistoryData = [
-  { time: "08:00", temp: 25, humi: 60, light: 400 },
-  { time: "10:00", temp: 28, humi: 55, light: 600 },
-  { time: "12:00", temp: 32, humi: 50, light: 800 },
-  { time: "14:00", temp: 36, humi: 45, light: 900 },
-  { time: "16:00", temp: 39, humi: 52, light: 500 },
-  { time: "18:00", temp: 27, humi: 58, light: 300 },
-  { time: "20:00", temp: 26, humi: 62, light: 100 },
-];
 
 export default function DashboardPage() {
-  const { temperature, humidity, light, toggleDevice, isConnected } =
-    useSensorMQTT();
+  // 1. Rút TOÀN BỘ dữ liệu real-time từ Hook ra (bao gồm cả mảng Lịch sử)
+  const { 
+    temperature, humidity, light, 
+    tempHistory, humiHistory, lightHistory, // <--- Lấy mảng dữ liệu thật
+    toggleDevice, isConnected 
+  } = useSensorMQTT();
+  
   const [isAutoMode, setIsAutoMode] = useState(true);
-
-  const lastMock = mockHistoryData[mockHistoryData.length - 1];
-
-  const displayTemp = temperature !== 0 ? temperature : lastMock.temp;
-  const displayHumi = humidity !== 0 ? humidity : lastMock.humi;
-  const displayLight = light !== 0 ? light : lastMock.light;
 
   // --- LOGIC MODULE 2: GIÁM SÁT & CẢNH BÁO ---
   useEffect(() => {
-    const tempVal = parseFloat(displayTemp.toString());
-    const lightVal = parseFloat(displayLight.toString());
-
-    if (tempVal > 35) {
+    if (temperature > 35) {
       toast.error("CẢNH BÁO: Nhiệt độ phòng quá cao!", {
-        description: `Hiện tại: ${tempVal}°C. Hệ thống sẽ tự kích hoạt làm mát.`,
+        description: `Hiện tại: ${temperature}°C. Hệ thống sẽ tự kích hoạt làm mát.`,
         duration: 5000,
       });
     }
 
     if (isAutoMode && isConnected) {
-      if (tempVal > 30) toggleDevice("fan" as any, "ON");
-      else if (tempVal < 28) toggleDevice("fan" as any, "OFF");
+      if (temperature > 30) toggleDevice("fan" as any, "ON");
+      else if (temperature < 28) toggleDevice("fan" as any, "OFF");
 
-      if (lightVal < 200) toggleDevice("led" as any, "ON");
-      else if (lightVal > 500) toggleDevice("led" as any, "OFF");
+      if (light < 200) toggleDevice("led" as any, "ON");
+      else if (light > 500) toggleDevice("led" as any, "OFF");
     }
-  }, [displayTemp, displayLight, isAutoMode, isConnected, toggleDevice]);
+  }, [temperature, light, isAutoMode, isConnected, toggleDevice]);
 
   return (
     <div className="flex flex-col gap-8 p-4 max-w-7xl mx-auto">
@@ -72,9 +50,9 @@ export default function DashboardPage() {
           <h2 className="text-2xl font-bold text-slate-800">
             Smart Home Dashboard
           </h2>
-          <p className="text-slate-500 text-sm flex items-center gap-2">
+          <p className="text-slate-500 text-sm flex items-center gap-2 mt-1">
             <span
-              className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
+              className={`w-2.5 h-2.5 rounded-full ${isConnected ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
             />
             {isConnected ? "System Online" : "System Offline"}
           </p>
@@ -82,10 +60,10 @@ export default function DashboardPage() {
 
         <button
           onClick={() => setIsAutoMode(!isAutoMode)}
-          className={`px-6 py-2 rounded-xl text-xs font-bold transition-all shadow-sm border ${
+          className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm border ${
             isAutoMode
-              ? "bg-blue-600 text-white border-blue-600"
-              : "bg-white text-slate-400 border-slate-200"
+              ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+              : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
           }`}
         >
           {isAutoMode ? "AUTO MODE: ON" : "AUTO MODE: OFF"}
@@ -96,90 +74,57 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <SensorCard
           label="Nhiệt độ"
-          value={displayTemp.toString()}
+          value={temperature.toString()}
           unit="°C"
-          icon={<Thermometer size={20} />}
-          trend={parseFloat(displayTemp.toString()) > 30 ? "Cao" : "Ổn định"}
-          color={parseFloat(displayTemp.toString()) > 35 ? "red" : "blue"}
+          icon={<Thermometer size={24} />}
+          trend={temperature > 30 ? "Cao" : "Ổn định"}
+          color={temperature > 35 ? "red" : "blue"}
         />
         <SensorCard
           label="Độ ẩm"
-          value={displayHumi.toString()}
+          value={humidity.toString()}
           unit="%"
-          icon={<Droplets size={20} />}
+          icon={<Droplets size={24} />}
           trend="Bình thường"
           color="blue"
         />
         <SensorCard
           label="Ánh sáng"
-          value={displayLight.toString()}
+          value={light.toString()}
           unit="Lux"
-          icon={<Sun size={20} />}
-          trend={parseFloat(displayLight.toString()) < 200 ? "Yếu" : "Tốt"}
-          color="blue"
+          icon={<Sun size={24} />}
+          trend={light < 200 ? "Yếu" : "Tốt"}
+          color="orange"
         />
       </div>
 
       {/* BIỂU ĐỒ LỊCH SỬ (MODULE 4) */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
             <ChartIcon size={20} />
           </div>
           <div>
-            <h3 className="text-s font-bold text-blue-800">Trend Chart</h3>
-            <p className="text-s text-blue-400">Daily Data Insights</p>
+            <h3 className="text-lg font-bold text-slate-800">Real-time Analytics</h3>
+            <p className="text-sm text-slate-500">Live sensor data tracking</p>
           </div>
         </div>
 
-        <div className="h-[350px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={mockHistoryData}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="#f1f5f9"
-              />
-              <XAxis
-                dataKey="time"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: "#000000", fontSize: 12 }}
-                dy={10}
-              />
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: "#000000", fontSize: 12 }}
-              />
-              <Tooltip
-                contentStyle={{
-                  borderRadius: "12px",
-                  border: "none",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-                }}
-              />
-              <Legend verticalAlign="top" align="right" iconType="circle" />
-              <Line
-                name="Nhiệt độ (°C)"
-                type="monotone"
-                dataKey="temp"
-                stroke="#3b82f6"
-                strokeWidth={3}
-                dot={{ r: 4, fill: "#3b82f6" }}
-                activeDot={{ r: 6 }}
-              />
-              <Line
-                name="Độ ẩm (%)"
-                type="monotone"
-                dataKey="humi"
-                stroke="#1c4783"
-                strokeWidth={2}
-                strokeDasharray="5 5"
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        {/* Dùng Grid để chia 2 biểu đồ nằm cạnh nhau trên màn hình to */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Chart Nhiệt độ truyền mảng tempHistory thật vào */}
+          <SensorChart 
+            title="Temperature Trend" 
+            data={tempHistory} 
+            color="#ef4444" // Màu đỏ cho nhiệt độ
+          />
+          
+          {/* Chart Độ ẩm truyền mảng humiHistory thật vào */}
+          <SensorChart 
+            title="Humidity Trend" 
+            data={humiHistory} 
+            color="#3b82f6" // Màu xanh cho độ ẩm
+          />
         </div>
       </div>
     </div>
