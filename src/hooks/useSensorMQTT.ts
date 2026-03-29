@@ -38,7 +38,6 @@ export function useSensorMQTT() {
       setIsConnected(true);
       setClient(mqttClient);
 
-      // Vì bạn đã chuẩn hóa tên, mình subscribe trực tiếp luôn
       const sensorFeeds = [
         'bbc-temp',
         'bbc-humidity',
