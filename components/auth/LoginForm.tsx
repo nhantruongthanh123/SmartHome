@@ -57,7 +57,7 @@ export default function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="relative">
-        <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400">
+        <span className="auth-input-icon pointer-events-none absolute inset-y-0 left-4 flex items-center">
           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M3.5 6.75h17v10.5h-17z" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M4 8l8 6 8-6" strokeLinecap="round" strokeLinejoin="round" />
@@ -69,13 +69,13 @@ export default function LoginForm() {
           placeholder="Email or Phone Number"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pr-4 pl-12 text-slate-800 outline-none transition focus:border-blue-400 focus:ring-3 focus:ring-blue-100"
+          className="auth-input w-full rounded-2xl py-3.5 pr-4 pl-12 outline-none transition"
           required
         />
       </div>
 
       <div className="relative">
-        <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400">
+        <span className="auth-input-icon pointer-events-none absolute inset-y-0 left-4 flex items-center">
           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M7.75 10V8a4.25 4.25 0 0 1 8.5 0v2" strokeLinecap="round" strokeLinejoin="round" />
             <rect x="4" y="10" width="16" height="10" rx="2" />
@@ -87,14 +87,14 @@ export default function LoginForm() {
           placeholder="Password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pr-12 pl-12 text-slate-800 outline-none transition focus:border-blue-400 focus:ring-3 focus:ring-blue-100"
+          className="auth-input w-full rounded-2xl py-3.5 pr-12 pl-12 outline-none transition"
           required
         />
 
         <button
           type="button"
           onClick={() => setShowPassword((prev) => !prev)}
-          className="absolute inset-y-0 right-3 my-2 rounded-lg px-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-500"
+          className="auth-eye-btn absolute inset-y-0 right-3 my-2 rounded-lg px-2 transition"
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -105,13 +105,13 @@ export default function LoginForm() {
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 border border-red-200">
+        <div className="auth-alert-error rounded-lg px-4 py-3 text-sm">
           {error}
         </div>
       )}
 
       <div className="text-right">
-        <Link href="#" className="text-sm font-medium text-blue-600 transition hover:text-blue-700">
+        <Link href="#" className="auth-link-subtle text-sm font-medium transition">
           Forgot Password?
         </Link>
       </div>
@@ -124,25 +124,25 @@ export default function LoginForm() {
         {loading ? "Logging in..." : "Log In"}
       </button>
 
-      <div className="flex items-center gap-3 py-1 text-sm text-slate-400">
-        <span className="h-px flex-1 bg-slate-200" />
+      <div className="auth-divider flex items-center gap-3 py-1 text-sm">
+        <span className="auth-divider-line h-px flex-1" />
         <span>or</span>
-        <span className="h-px flex-1 bg-slate-200" />
+        <span className="auth-divider-line h-px flex-1" />
       </div>
 
       <button
         type="button"
         onClick={handleGoogleSignIn}
         disabled={loading}
-        className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-base font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="auth-social-btn flex w-full items-center justify-center gap-3 rounded-2xl px-5 py-3.5 text-base font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <span className="grid h-6 w-6 place-content-center rounded-full bg-white text-sm font-bold text-slate-700">G</span>
         {loading ? "Connecting..." : "Log In with Google Account"}
       </button>
 
-      <p className="pt-1 text-center text-base text-slate-500">
+      <p className="auth-subtitle pt-1 text-center text-base">
         New here?{" "}
-        <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-700">
+        <Link href="/register" className="auth-link-subtle font-semibold">
           Create an account
         </Link>
       </p>

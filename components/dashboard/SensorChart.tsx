@@ -23,10 +23,10 @@ interface SensorChartProps {
 
 export default function SensorChart({ data, title, color = '#3b82f6' }: SensorChartProps) {
   return (
-    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-4 w-full h-[350px]">
+    <div className="card-surface p-6 rounded-3xl flex flex-col gap-4 w-full h-[350px]">
       <div className="flex justify-between items-center mb-2">
-        <h3 className="text-lg font-bold text-slate-800">{title}</h3>
-        <span className="text-xs font-medium text-slate-400 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+        <h3 className="card-title text-lg font-bold">{title}</h3>
+        <span className="chart-chip text-xs font-medium px-3 py-1 rounded-full">
           Real-time (20 points)
         </span>
       </div>

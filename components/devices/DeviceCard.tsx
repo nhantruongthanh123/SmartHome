@@ -36,12 +36,12 @@ export default function DeviceCard({
 
   return (
     <div
-      className={`bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-6 transition-all duration-300 ${disabled ? "opacity-50" : ""}`}
+      className={`card-surface p-6 rounded-3xl flex flex-col gap-6 transition-all duration-300 ${disabled ? "opacity-50" : ""}`}
     >
       <div className="flex justify-between items-start">
         {/* Icon đổi màu */}
         <div
-          className={`p-3 rounded-2xl transition-all duration-300 ${active ? "bg-blue-600 text-white shadow-lg shadow-blue-200" : "bg-slate-50 text-slate-400"}`}
+          className={`p-3 rounded-2xl transition-all duration-300 ${active ? "bg-blue-600 text-white shadow-lg shadow-blue-200" : "device-icon-off"}`}
         >
           {icon}
         </div>
@@ -51,7 +51,7 @@ export default function DeviceCard({
           onClick={handleToggle}
           disabled={disabled}
           className={`w-12 h-6 rounded-full relative transition-all duration-300 ${
-            active ? "bg-blue-600" : "bg-slate-200"
+            active ? "device-track-on" : "device-track-off"
           }`}
         >
           <div
@@ -61,20 +61,20 @@ export default function DeviceCard({
       </div>
 
       <div className="flex flex-col">
-        <h3 className="font-bold text-slate-800 text-lg leading-tight">
+        <h3 className="card-title font-bold text-lg leading-tight">
           {name}
         </h3>
 
         <div className="h-5 mt-1 overflow-hidden">
           {active ? (
-            <p className="text-[11px] font-bold uppercase tracking-widest text-blue-600 animate-in fade-in slide-in-from-top-1 duration-200">
+            <p className="device-status-on text-[11px] font-bold uppercase tracking-widest animate-in fade-in slide-in-from-top-1 duration-200">
               {statusText ? statusText : "DEVICE IS ON"}
             </p>
           ) : null}
         </div>
       </div>
 
-      <div className="pt-4 border-t border-slate-50 flex flex-col gap-4">
+      <div className="device-footer pt-4 flex flex-col gap-4">
         {children}
       </div>
     </div>

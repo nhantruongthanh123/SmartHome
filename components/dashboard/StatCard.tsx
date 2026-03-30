@@ -25,7 +25,7 @@ export default function StatCard({
   };
 
   return (
-    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-4">
+    <div className="card-surface p-6 rounded-3xl flex flex-col gap-4">
       <div className="flex justify-between items-start">
         <div
           className={`p-3 rounded-2xl ${colorClasses[color] || colorClasses.blue}`}
@@ -41,12 +41,12 @@ export default function StatCard({
         )}
       </div>
       <div>
-        <p className="text-slate-500 text-xs font-medium uppercase tracking-wider">
+        <p className="card-muted text-xs font-medium uppercase tracking-wider">
           {label}
         </p>
         <div className="flex items-baseline gap-1 mt-1">
-          <h4 className="text-2xl font-bold text-slate-800">{value}</h4>
-          <span className="text-slate-400 text-sm font-medium">{unit}</span>
+          <h4 className="card-title text-2xl font-bold">{value}</h4>
+          <span className="card-muted text-sm font-medium">{unit}</span>
         </div>
       </div>
     </div>

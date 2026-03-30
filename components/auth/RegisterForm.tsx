@@ -69,7 +69,7 @@ export default function RegisterForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="relative">
-        <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400">
+        <span className="auth-input-icon pointer-events-none absolute inset-y-0 left-4 flex items-center">
           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M3.5 6.75h17v10.5h-17z" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M4 8l8 6 8-6" strokeLinecap="round" strokeLinejoin="round" />
@@ -81,13 +81,13 @@ export default function RegisterForm() {
           placeholder="Email Address"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pr-4 pl-12 text-slate-800 outline-none transition focus:border-blue-400 focus:ring-3 focus:ring-blue-100"
+          className="auth-input w-full rounded-2xl py-3.5 pr-4 pl-12 outline-none transition"
           required
         />
       </div>
 
       <div className="relative">
-        <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400">
+        <span className="auth-input-icon pointer-events-none absolute inset-y-0 left-4 flex items-center">
           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round" />
             <circle cx="12" cy="7" r="4" strokeLinecap="round" strokeLinejoin="round" />
@@ -99,13 +99,13 @@ export default function RegisterForm() {
           placeholder="Username"
           value={username}
           onChange={(event) => setUsername(event.target.value)}
-          className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pr-4 pl-12 text-slate-800 outline-none transition focus:border-blue-400 focus:ring-3 focus:ring-blue-100"
+          className="auth-input w-full rounded-2xl py-3.5 pr-4 pl-12 outline-none transition"
           required
         />
       </div>
 
       <div className="relative">
-        <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400">
+        <span className="auth-input-icon pointer-events-none absolute inset-y-0 left-4 flex items-center">
           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M7.75 10V8a4.25 4.25 0 0 1 8.5 0v2" strokeLinecap="round" strokeLinejoin="round" />
             <rect x="4" y="10" width="16" height="10" rx="2" />
@@ -117,14 +117,14 @@ export default function RegisterForm() {
           placeholder="Password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pr-12 pl-12 text-slate-800 outline-none transition focus:border-blue-400 focus:ring-3 focus:ring-blue-100"
+          className="auth-input w-full rounded-2xl py-3.5 pr-12 pl-12 outline-none transition"
           required
         />
 
         <button
           type="button"
           onClick={() => setShowPassword((prev) => !prev)}
-          className="absolute inset-y-0 right-3 my-2 rounded-lg px-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-500"
+          className="auth-eye-btn absolute inset-y-0 right-3 my-2 rounded-lg px-2 transition"
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -135,7 +135,7 @@ export default function RegisterForm() {
       </div>
 
       <div className="relative">
-        <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400">
+        <span className="auth-input-icon pointer-events-none absolute inset-y-0 left-4 flex items-center">
           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M7.75 10V8a4.25 4.25 0 0 1 8.5 0v2" strokeLinecap="round" strokeLinejoin="round" />
             <rect x="4" y="10" width="16" height="10" rx="2" />
@@ -147,14 +147,14 @@ export default function RegisterForm() {
           placeholder="Confirm Password"
           value={confirmPassword}
           onChange={(event) => setConfirmPassword(event.target.value)}
-          className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pr-12 pl-12 text-slate-800 outline-none transition focus:border-blue-400 focus:ring-3 focus:ring-blue-100"
+          className="auth-input w-full rounded-2xl py-3.5 pr-12 pl-12 outline-none transition"
           required
         />
 
         <button
           type="button"
           onClick={() => setShowConfirm((prev) => !prev)}
-          className="absolute inset-y-0 right-3 my-2 rounded-lg px-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-500"
+          className="auth-eye-btn absolute inset-y-0 right-3 my-2 rounded-lg px-2 transition"
           aria-label={showConfirm ? "Hide password" : "Show password"}
         >
           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -165,13 +165,13 @@ export default function RegisterForm() {
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 border border-red-200">
+        <div className="auth-alert-error rounded-lg px-4 py-3 text-sm">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 border border-green-200">
+        <div className="auth-alert-success rounded-lg px-4 py-3 text-sm">
           {success}
         </div>
       )}
@@ -184,9 +184,9 @@ export default function RegisterForm() {
         {loading ? "Creating Account..." : "Create Account"}
       </button>
 
-      <p className="pt-1 text-center text-base text-slate-500">
+      <p className="auth-subtitle pt-1 text-center text-base">
         Already have an account?{" "}
-        <Link href="/login" className="font-semibold text-blue-600 hover:text-blue-700">
+        <Link href="/login" className="auth-link-subtle font-semibold">
           Sign in here
         </Link>
       </p>

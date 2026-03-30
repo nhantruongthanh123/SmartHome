@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { SessionProvider } from "next-auth/react"
 
 import "./globals.css";
+import { ThemeProvider } from "next-themes";
 
 export const metadata: Metadata = {
   title: "Smart Home",
@@ -17,7 +18,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <html lang="en" suppressHydrationWarning>
             <body suppressHydrationWarning>
                 <SessionProvider>
-                    {children}
+                    <ThemeProvider attribute="class" defaultTheme="light">
+                        {children}
+                    </ThemeProvider>
                 </SessionProvider>
             </body>
         </html>

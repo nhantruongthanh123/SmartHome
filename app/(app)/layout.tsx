@@ -4,7 +4,7 @@ import Topbar from "@/components/layout/Topbar";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen bg-slate-50/50">
+    <div className="app-layout-shell flex h-screen">
       {/* 1. Sidebar bên trái - Chiếm chiều cao toàn màn hình */}
       <Sidebar />
 
@@ -13,7 +13,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Topbar />
 
         {/* 3. Nội dung trang chính */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
+        <main className="app-main-content flex-1 overflow-x-hidden overflow-y-auto p-6">
           {children}
         </main>
       </div>
