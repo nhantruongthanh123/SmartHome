@@ -25,8 +25,8 @@ export default function DashboardPage() {
   // --- LOGIC MODULE 2: GIÁM SÁT & CẢNH BÁO ---
   useEffect(() => {
     if (temperature > 35) {
-      toast.error("CẢNH BÁO: Nhiệt độ phòng quá cao!", {
-        description: `Hiện tại: ${temperature}°C. Hệ thống sẽ tự kích hoạt làm mát.`,
+      toast.error("Warning: Temperature too high!", {
+        description: `Current: ${temperature}°C. System will automatically activate cooling.`,
         duration: 5000,
       });
     }
@@ -73,27 +73,27 @@ export default function DashboardPage() {
       {/* GRID SENSOR CARDS (MODULE 2) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <SensorCard
-          label="Nhiệt độ"
+          label="Temperature"
           value={temperature.toString()}
           unit="°C"
           icon={<Thermometer size={24} />}
-          trend={temperature > 30 ? "Cao" : "Ổn định"}
+          trend={temperature > 30 ? "High" : "Stable"}
           color={temperature > 35 ? "red" : "blue"}
         />
         <SensorCard
-          label="Độ ẩm"
+          label="Humidity"
           value={humidity.toString()}
           unit="%"
           icon={<Droplets size={24} />}
-          trend="Bình thường"
+          trend="Normal"
           color="blue"
         />
         <SensorCard
-          label="Ánh sáng"
+          label="Light"
           value={light.toString()}
           unit="Lux"
           icon={<Sun size={24} />}
-          trend={light < 200 ? "Yếu" : "Tốt"}
+          trend={light < 200 ? "Low" : "Good"}
           color="orange"
         />
       </div>

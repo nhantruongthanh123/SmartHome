@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SessionProvider } from "next-auth/react"
 
 import "./globals.css";
 
@@ -14,7 +15,11 @@ type RootLayoutProps = {
 export default function RootLayout({ children }: RootLayoutProps) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body>{children}</body>
+            <body suppressHydrationWarning>
+                <SessionProvider>
+                    {children}
+                </SessionProvider>
+            </body>
         </html>
     );
 }

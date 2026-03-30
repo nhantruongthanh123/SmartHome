@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 export default function RegisterForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -22,8 +23,8 @@ export default function RegisterForm() {
     setLoading(true);
 
     // Validation
-    if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
-      setError("Please enter email, password, and confirm password");
+    if (!email.trim() || !username.trim() || !password.trim() || !confirmPassword.trim()) {
+      setError("Please fill in all fields");
       setLoading(false);
       return;
     }
@@ -44,7 +45,7 @@ export default function RegisterForm() {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, username, password }),
       });
 
       const data = await response.json();
@@ -80,6 +81,24 @@ export default function RegisterForm() {
           placeholder="Email Address"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
+          className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pr-4 pl-12 text-slate-800 outline-none transition focus:border-blue-400 focus:ring-3 focus:ring-blue-100"
+          required
+        />
+      </div>
+
+      <div className="relative">
+        <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400">
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="12" cy="7" r="4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
           className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pr-4 pl-12 text-slate-800 outline-none transition focus:border-blue-400 focus:ring-3 focus:ring-blue-100"
           required
         />
@@ -162,7 +181,7 @@ export default function RegisterForm() {
         className="mt-2 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3.5 text-lg font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:brightness-105 active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
         type="submit"
       >
-        {loading ? "Đang tạo tài khoản..." : "Create Account"}
+        {loading ? "Creating Account..." : "Create Account"}
       </button>
 
       <p className="pt-1 text-center text-base text-slate-500">

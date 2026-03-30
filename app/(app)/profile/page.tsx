@@ -1,5 +1,8 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { toast, Toaster } from "sonner";
+import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import {
   User,
   Mail,
@@ -7,47 +10,141 @@ import {
   Shield,
   Bell,
   LogOut,
-  Save,
+  CalendarDays,
   Hash,
+  Check,
+  Loader2,
+  X
 } from "lucide-react";
-import { toast, Toaster } from "sonner";
-import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null); 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [userData, setUserData] = useState({
-    name: "Thanh Nhân",
-    email: "thanhnhan@hcmut.edu.vn",
-    role: "Administrator",
-    studentId: "231xxxx",
-    avatar: "TN",
+    id: "",
+    name: "",
+    email: "",
+    avatar: "",
+    role: "USER",
+    createdAt: "",
+    updatedAt: "",
   });
 
-  // Hàm xử lý khi chọn ảnh từ máy
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await fetch("/api/user/profile");
+        if (response.ok) {
+          const data = await response.json();
+          // Cập nhật dữ liệu từ DB vào state (nếu trường nào null thì để chuỗi rỗng)
+          setUserData({
+            id: data.id,
+            name: data.name || "",
+            email: data.email || "",
+            role: "USER",
+            avatar: data.image || "",
+            createdAt: data.createdAt || "", 
+            updatedAt: data.updatedAt || ""
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user profile: ", error);
+      } finally {
+        setLoading(false); // Tắt hiệu ứng tải
+      }
+    };
+
+    fetchUserProfile();
+  }, []); // Mảng rỗng [] nghĩa là chỉ chạy 1 lần duy nhất khi mở trang
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        // Giới hạn 2MB
-        toast.error("File quá lớn! Vui lòng chọn ảnh dưới 2MB.");
+      if (file.size > 4 * 1024 * 1024) {
+        // Giới hạn 4MB
+        toast.error("Please select an image smaller than 4MB.");
         return;
       }
       const reader = new FileReader();
       reader.onloadend = () => {
+        setSelectedFile(file);
         setPreviewImage(reader.result as string);
-        toast.success("Đã tải ảnh lên thành công!");
+        toast.success("Image uploaded successfully!");
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSignOut = () => {
-    toast.loading("Signing out...");
-    setTimeout(() => router.push("/login"), 1000);
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    try {
+      const formData = new FormData();
+      formData.append("name", userData.name);
+      
+      // Nếu người dùng có chọn file mới thì mới gửi đi
+      if (selectedFile) {
+        formData.append("image", selectedFile);
+      }
+
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        body: formData, // Gửi FormData thay vì JSON
+      });
+
+      if (res.ok) {
+        const updatedUser = await res.json();
+        setUserData({ 
+          ...userData, 
+          name: updatedUser.name, 
+          avatar: updatedUser.image 
+        });
+        setPreviewImage(null);
+        setSelectedFile(null);
+        setIsEditing(false);
+        toast.success("Profile updated successfully!");
+      } else {
+        toast.error("Failed to update profile");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    const toastId = toast.loading("Signing out...");
+    
+    try {
+      // Hàm này sẽ: 
+      // 1. Gọi API logout ngầm của NextAuth
+      // 2. Xóa sạch Cookie trên trình duyệt
+      // 3. Tự động redirect về trang chủ hoặc trang login
+      await signOut({ callbackUrl: "/login" }); 
+    } catch (error) {
+      toast.error("Failed to sign out", { id: toastId });
+    }
+  };
+
+  const formatDateTime = (dateString: string) => {
+    if (!dateString) return ""; 
+    
+    const date = new Date(dateString);
+    
+    return date.toLocaleString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
 
   return (
@@ -72,15 +169,17 @@ export default function ProfilePage() {
               <div className="px-6 pb-8 -mt-12 text-center">
                 <div className="relative inline-block">
                   <div className="w-28 h-28 bg-white p-1.5 rounded-full shadow-lg overflow-hidden">
-                    {previewImage ? (
+                    {/* Ưu tiên hiển thị ảnh xem trước (previewImage), nếu không có thì lấy ảnh từ DB (userData.avatar) */}
+                    {previewImage || (userData.avatar && userData.avatar !== "") ? (
                       <img
-                        src={previewImage}
+                        src={previewImage || userData.avatar}
                         alt="Avatar"
                         className="w-full h-full object-cover rounded-full"
                       />
                     ) : (
-                      <div className="w-full h-full bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl font-bold">
-                        {userData.avatar}
+                      // Nếu cả hai đều rỗng -> Hiện Icon User mặc định
+                      <div className="w-full h-full bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
+                        <User size={48} strokeWidth={1.5} />
                       </div>
                     )}
                   </div>
@@ -112,7 +211,7 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-2xl text-slate-600">
                     <Hash size={18} className="text-blue-500" />
                     <span className="text-sm font-bold truncate">
-                      {userData.studentId}
+                      {userData.id}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-2xl text-slate-600">
@@ -121,9 +220,52 @@ export default function ProfilePage() {
                       {userData.email}
                     </span>
                   </div>
+                  <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-2xl text-slate-600">
+                    <CalendarDays size={18} className="text-blue-500" />
+                    <span className="text-sm font-medium truncate">
+                      {formatDateTime(userData.updatedAt)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {previewImage && (
+              <div className="flex gap-3 animate-in fade-in zoom-in-95 duration-300">
+                {/* Nút Cancel */}
+                <button
+                  onClick={() => {
+                    setPreviewImage(null);
+                    setSelectedFile(null);
+                  }}
+                  disabled={isSaving}
+                  className="flex-1 flex items-center justify-center gap-2 py-3.5 text-slate-600 font-bold bg-white border-2 border-slate-100 rounded-[2rem] hover:border-slate-200 hover:bg-slate-50 transition-all shadow-sm hover:shadow active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <X size={18} strokeWidth={2.5} />
+                  <span>Cancel</span>
+                </button>
+
+                {/* Nút Save Avatar */}
+                <button
+                  onClick={handleSaveProfile} 
+                  disabled={isSaving}
+                  className="flex-1 flex items-center justify-center gap-2 py-3.5 text-white font-bold bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2rem] hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md shadow-blue-500/30 hover:shadow-lg hover:shadow-blue-500/40 active:scale-[0.98] disabled:from-blue-400 disabled:to-indigo-400 disabled:shadow-none disabled:cursor-not-allowed"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" strokeWidth={2.5} />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check size={18} strokeWidth={2.5} />
+                      <span>Save Avatar</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
 
             <button
               onClick={handleSignOut}
@@ -150,17 +292,24 @@ export default function ProfilePage() {
                   </h4>
                 </div>
                 <button
-                  onClick={() => setIsEditing(!isEditing)}
-                  className="px-5 py-2 bg-slate-50 text-blue-600 text-sm font-bold rounded-full hover:bg-blue-600 hover:text-white transition-all"
+                  onClick={() => {
+                    if (isEditing) {
+                      handleSaveProfile(); 
+                    } else {
+                      setIsEditing(true); 
+                    }
+                  }}
+                  disabled={isSaving}
+                  className="px-5 py-2 bg-slate-50 text-blue-600 text-sm font-bold rounded-full hover:bg-blue-600 hover:text-white transition-all disabled:opacity-50"
                 >
-                  {isEditing ? "Save Changes" : "Edit Profile"}
+                  {isSaving ? "Saving..." : isEditing ? "Save Changes" : "Edit Profile"}
                 </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
                   <label className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em] ml-1">
-                    Full Name
+                    User Name
                   </label>
                   <input
                     disabled={!isEditing}
@@ -173,14 +322,14 @@ export default function ProfilePage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em] ml-1">
-                    Student ID
+                    User ID
                   </label>
                   <input
-                    disabled={!isEditing}
+                    disabled={true}
                     className="w-full bg-slate-50/50 border border-slate-100 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-blue-500 transition-all"
-                    value={userData.studentId}
+                    value={userData.id}
                     onChange={(e) =>
-                      setUserData({ ...userData, studentId: e.target.value })
+                      setUserData({ ...userData, id: e.target.value })
                     }
                   />
                 </div>
@@ -189,7 +338,7 @@ export default function ProfilePage() {
                     Email Address
                   </label>
                   <input
-                    disabled={!isEditing}
+                    disabled={true}
                     className="w-full bg-slate-50/50 border border-slate-100 rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-blue-500 transition-all"
                     value={userData.email}
                     onChange={(e) =>

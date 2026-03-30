@@ -10,7 +10,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   
   // 2. Ép buộc lưu phiên đăng nhập bằng JWT (Bắt buộc khi dùng Credentials)
-  session: { strategy: "jwt" }, 
+  session: { 
+    strategy: "jwt",
+    maxAge: 1 * 24 * 60 * 60, 
+  }, 
   
   providers: [
     // --- PHƯƠNG THỨC 1: ĐĂNG NHẬP GOOGLE ---
@@ -32,7 +35,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         // Bước A: Kiểm tra xem người dùng có nhập đủ thông tin không
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Vui lòng nhập đầy đủ thông tin!")
+          throw new Error("Please enter both email and password");
         }
 
         // Bước B: Tìm người dùng trong Database dựa vào Email
@@ -42,7 +45,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         // Bước C: Chặn những tài khoản tạo bằng Google (không có mật khẩu)
         if (!user || !user.password) {
-          throw new Error("Tài khoản không tồn tại hoặc bạn đang dùng Google để đăng nhập.")
+          throw new Error("Account does not exist or you are using Google to log in.")
         }
 
         // Bước D: So sánh mật khẩu người dùng nhập vào với cục hash trong Database
@@ -53,7 +56,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         // Nếu mật khẩu sai
         if (!isPasswordValid) {
-          throw new Error("Sai mật khẩu!")
+          throw new Error("Invalid password!")
         }
 
         // Nếu mọi thứ hoàn hảo, trả về thông tin user cho NextAuth tạo phiên đăng nhập

@@ -1,4 +1,3 @@
-// src/hooks/useSensorMQTT.ts
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -26,6 +25,7 @@ export function useSensorMQTT() {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
+
     const mqttClient = mqtt.connect(MQTT_CONFIG.host!, {
       username: MQTT_CONFIG.username!,
       password: MQTT_CONFIG.apiKey!,
@@ -33,15 +33,18 @@ export function useSensorMQTT() {
       clean: true, 
     });
 
+    if (mqttClient.connected === false) {
+      return;
+    }
+
     mqttClient.on('connect', () => {
-      console.log('✅ Connected to Adafruit IO');
       setIsConnected(true);
       setClient(mqttClient);
 
       const sensorFeeds = [
         'bbc-temp',
         'bbc-humidity',
-        'bbc-light' // Nhớ tạo feed này trên Adafruit nếu bạn muốn đo ánh sáng nhé
+        'bbc-light' 
       ];
       
       sensorFeeds.forEach(feed => {
@@ -52,29 +55,26 @@ export function useSensorMQTT() {
     });
 
     mqttClient.on('message', (topic, message) => {
-      // 1. Ép kiểu và làm tròn 2 chữ số thập phân
       const value = Number(parseFloat(message.toString()).toFixed(2));
       
-      // 2. Tạo dữ liệu để vẽ biểu đồ
+
       const timeLabel = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       const uniqueId = Math.random().toString(36).substring(7);
       const newPoint: ChartDataPoint = { id: uniqueId, time: timeLabel, value: value };
 
       console.log(`📩 Có dữ liệu mới từ [${topic}]: ${value}`);
 
-      // 3. Phân loại và cập nhật (Bao gồm cả số hiện tại và mảng biểu đồ)
-      // Dùng .includes() bây giờ cực kỳ an toàn vì tên đã được chuẩn hóa
       if (topic.includes('bbc-temp')) {
         setTemperature(value);
-        setTempHistory(prev => [...prev.slice(-19), newPoint]); // Giữ 20 điểm
+        setTempHistory(prev => [...prev.slice(-19), newPoint]);
       } 
       else if (topic.includes('bbc-humidity')) {
         setHumidity(value);
-        setHumiHistory(prev => [...prev.slice(-19), newPoint]); // Giữ 20 điểm
+        setHumiHistory(prev => [...prev.slice(-19), newPoint]); 
       } 
       else if (topic.includes('bbc-light')) {
         setLight(value);
-        setLightHistory(prev => [...prev.slice(-19), newPoint]); // Giữ 20 điểm
+        setLightHistory(prev => [...prev.slice(-19), newPoint]); 
       }
     });
 
@@ -89,13 +89,10 @@ export function useSensorMQTT() {
     };
   }, []);
 
-  // Hàm điều khiển thiết bị
   const toggleDevice = (feedKey: string, status: 'ON' | 'OFF') => {
     if (client && isConnected) {
       const message = status === 'ON' ? '1' : '0';
-      // Gọi thẳng tên feed mới chuẩn hóa của bạn
       client.publish(`${MQTT_CONFIG.username}/feeds/${feedKey}`, message);
-      console.log(`📤 Sent ${status} (${message}) to ${feedKey}`);
     }
   };
 

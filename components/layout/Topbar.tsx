@@ -1,16 +1,17 @@
 "use client";
 
 import { Search, Bell, ChevronDown } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 
-const USER_MOCK = {
-  name: "Thanh Nhân",
-  email: "thanhnhan@hcmut.edu.vn",
-  avatar: "TN",
-  role: "Admin",
-};
-
 export default function Topbar() {
+  const { data: session } = useSession();
+  const user = session?.user || {
+    name: "Guest",
+    image: "",
+  };
+
+
   return (
     <header className="h-20 bg-white/70 backdrop-blur-lg flex items-center justify-between px-8 border-b border-slate-100/80 shrink-0 z-50 sticky top-0">
       <div className="flex-1 max-w-md relative group">
@@ -37,15 +38,28 @@ export default function Topbar() {
           <div className="flex items-center gap-3 pl-4 border-l border-slate-100 cursor-pointer group hover:bg-slate-50/50 py-1.5 px-2 rounded-2xl transition-all">
             <div className="text-right hidden md:block">
               <p className="text-[14px] font-bold text-slate-700 leading-tight group-hover:text-blue-600 transition-colors">
-                {USER_MOCK.name}
+                {user.name}
               </p>
               <p className="text-[11px] font-semibold text-red-500 uppercase tracking-wider mt-0.5">
-                {USER_MOCK.role}
+                {"USER"}
               </p>
             </div>
 
             <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl overflow-hidden flex items-center justify-center text-white text-[13px] font-bold shadow-lg shadow-blue-200/50 group-hover:rotate-3 transition-all border-2 border-white">
-              {USER_MOCK.avatar}
+              {user.image && user.image !== "" ? (
+                <img 
+                  src={user.image} 
+                  alt="avatar" 
+                  className="w-full h-full object-cover" 
+                  // Thêm onError để nếu link ảnh bị lỗi thì nó hiện chữ cái đầu tên bạn
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              ) : (
+                // Hiện chữ cái đầu của tên (ví dụ: Nhân -> N) khi không có ảnh
+                <span>{user.name?.charAt(0).toUpperCase()}</span>
+              )}
             </div>
 
             <ChevronDown

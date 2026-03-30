@@ -7,12 +7,12 @@ export async function POST(request: Request) {
   try {
     // 1. Mở gói hàng người dùng gửi lên để lấy Email và Mật khẩu
     const body = await request.json();
-    const { email, password } = body;
+    const { email, username,password } = body;
 
     // 2. Kiểm tra gắt gao: Bắt buộc phải có đủ cả hai
-    if (!email || !password) {
+    if (!email || !password || !username) {
       return NextResponse.json(
-        { message: "Please enter both email and password" }, 
+        { message: "Please fill in all fields" }, 
         { status: 400 } // Lỗi 400: Bad Request (Yêu cầu gửi lên bị thiếu)
       );
     }
@@ -36,6 +36,7 @@ export async function POST(request: Request) {
     const newUser = await prisma.user.create({
       data: {
         email: email,
+        name: username,
         password: hashedPassword, // Lưu mật khẩu đã băm, TUYỆT ĐỐI KHÔNG lưu mật khẩu gốc
       }
     });
@@ -44,7 +45,7 @@ export async function POST(request: Request) {
 
     // 6. Trả về thông báo thành công cho giao diện bên ngoài
     return NextResponse.json(
-      { message: "Registration successful!", email}, 
+      { message: "Registration successful!", email, username }, 
       { status: 201 } // Mã 201: Created (Đã tạo thành công)
     );
 

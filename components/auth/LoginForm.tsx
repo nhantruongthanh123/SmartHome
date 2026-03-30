@@ -121,7 +121,7 @@ export default function LoginForm() {
         className="mt-2 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3.5 text-lg font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:brightness-105 active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
         type="submit"
       >
-        {loading ? "Đang đăng nhập..." : "Log In"}
+        {loading ? "Logging in..." : "Log In"}
       </button>
 
       <div className="flex items-center gap-3 py-1 text-sm text-slate-400">
@@ -137,7 +137,7 @@ export default function LoginForm() {
         className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-base font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <span className="grid h-6 w-6 place-content-center rounded-full bg-white text-sm font-bold text-slate-700">G</span>
-        {loading ? "Đang kết nối..." : "Log In with Google Account"}
+        {loading ? "Connecting..." : "Log In with Google Account"}
       </button>
 
       <p className="pt-1 text-center text-base text-slate-500">
