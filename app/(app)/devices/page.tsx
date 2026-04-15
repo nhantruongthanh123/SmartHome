@@ -22,9 +22,9 @@ function BrightnessSlider({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex justify-between text-[13px] font-bold text-slate-400 uppercase">
+      <div className="flex justify-between text-[13px] font-bold card-muted uppercase tracking-wider">
         <span>Manual Brightness</span>
-        <span className="text-blue-600 font-bold">{value}%</span>
+        <span className="text-blue-600 dark:text-blue-400 font-bold">{value}%</span>
       </div>
       <input
         type="range"
@@ -32,7 +32,7 @@ function BrightnessSlider({
         max="100"
         value={value}
         onChange={handleChange}
-        className="w-full h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600 hover:accent-blue-700 transition-all"
+        className="w-full h-1 bg-border rounded-lg appearance-none cursor-pointer accent-blue-600 hover:accent-blue-700 transition-all"
       />
     </div>
   );
@@ -43,15 +43,15 @@ export default function DevicePage() {
   const { toggleDevice, isConnected } = useSensorMQTT();
 
   return (
-    <section className="flex flex-col gap-6">
+    <section className="flex flex-col gap-6 bg-main min-h-screen">
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Your Devices</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className="text-2xl font-extrabold card-title">Your Devices</h2>
+          <p className="text-sm card-muted">
             Manage and monitor all your smart modules in one place.
           </p>
         </div>
-        <span className="text-[10px] font-bold text-red-500 uppercase">
+        <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">
           {isConnected ? "" : "Disconnected from Server"}
         </span>
       </div>
@@ -74,9 +74,9 @@ export default function DevicePage() {
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
-                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                className="w-4 h-4 rounded border-border text-blue-600 focus:ring-blue-500 accent-blue-600"
               />
-              <label className="text-[10px] font-bold text-slate-500 uppercase">
+              <label className="text-[10px] font-bold card-muted uppercase tracking-wider">
                 Enable Light Threshold
               </label>
             </div>
@@ -94,9 +94,9 @@ export default function DevicePage() {
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
-              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              className="w-4 h-4 rounded border-border text-blue-600 focus:ring-blue-500 accent-blue-600"
             />
-            <label className="text-[10px] font-bold text-slate-500 uppercase">
+            <label className="text-[10px] font-bold card-muted uppercase tracking-wider">
               Enable Auto Mode (28°C Threshold)
             </label>
           </div>
@@ -111,14 +111,14 @@ export default function DevicePage() {
           }
         >
           <div className="flex flex-col gap-2">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            <p className="text-[10px] font-bold card-muted uppercase tracking-wider">
               Recent Activity
             </p>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full" />
-              <p className="text-[10px] text-slate-500 font-medium">
+              <p className="text-[10px] card-muted font-medium">
                 Last run:{" "}
-                <span className="font-bold text-slate-700">Auto Mode</span> - 5
+                <span className="font-bold card-title">Auto Mode</span> - 5
                 mins ago
               </p>
             </div>

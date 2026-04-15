@@ -34,37 +34,42 @@ export default function SensorChart({ data, title, color = '#3b82f6' }: SensorCh
       <div className="flex-1 w-full h-full">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            
-            <XAxis 
-              dataKey="time" 
-              tick={{ fontSize: 11, fill: '#94a3b8' }}
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
+
+            <XAxis
+              dataKey="time"
+              tick={{ fontSize: 11, fill: 'var(--muted)' }}
               tickLine={false}
               axisLine={false}
               minTickGap={20}
             />
-            
-            <YAxis 
-              domain={['dataMin - 1', 'dataMax + 1']} // Tự động zoom biểu đồ theo biên độ nhiệt
-              tick={{ fontSize: 11, fill: '#94a3b8' }}
+
+            <YAxis
+              domain={['dataMin - 1', 'dataMax + 1']}
+              tick={{ fontSize: 11, fill: 'var(--muted)' }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(val) => `${val}`}
             />
-            
-            <Tooltip 
-              contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-              labelStyle={{ color: '#64748b', fontSize: '12px', marginBottom: '4px' }}
+
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'var(--card)',
+                borderRadius: '12px',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-soft)'
+              }}
+              labelStyle={{ color: 'var(--muted)', fontSize: '12px', marginBottom: '4px' }}
               itemStyle={{ color: color, fontWeight: 'bold' }}
             />
-            
-            <Line 
-              type="monotone" 
-              dataKey="value" 
-              stroke={color} 
-              strokeWidth={3} 
+
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke={color}
+              strokeWidth={3}
               dot={false} // Tắt các chấm tròn để nhìn mượt hơn
-              activeDot={{ r: 6, strokeWidth: 0 }} 
+              activeDot={{ r: 6, strokeWidth: 0 }}
               isAnimationActive={false} // Tắt animation mặc định để trượt real-time mượt hơn
             />
           </LineChart>

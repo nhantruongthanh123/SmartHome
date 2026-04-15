@@ -41,18 +41,18 @@ export default function DashboardPage() {
   }, [temperature, light, isAutoMode, isConnected, toggleDevice]);
 
   return (
-    <div className="flex flex-col gap-8 p-4 max-w-7xl mx-auto">
+    <div className="flex flex-col gap-8 p-4 max-w-7xl mx-auto bg-main min-h-full">
       <Toaster position="top-right" richColors />
 
       {/* Header Dashboard */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">
+          <h2 className="text-2xl font-extrabold card-title">
             Smart Home Dashboard
           </h2>
-          <p className="text-slate-500 text-sm flex items-center gap-2 mt-1">
+          <p className="card-muted text-sm flex items-center gap-2 mt-1">
             <span
-              className={`w-2.5 h-2.5 rounded-full ${isConnected ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
+              className={`w-2.5 h-2.5 rounded-full ${isConnected ? "bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" : "bg-red-500"}`}
             />
             {isConnected ? "System Online" : "System Offline"}
           </p>
@@ -63,7 +63,7 @@ export default function DashboardPage() {
           className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm border ${
             isAutoMode
               ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-              : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
+              : "bg-card text-muted border-border hover:bg-slate-50 dark:hover:bg-slate-800"
           }`}
         >
           {isAutoMode ? "AUTO MODE: ON" : "AUTO MODE: OFF"}
@@ -101,12 +101,12 @@ export default function DashboardPage() {
       {/* BIỂU ĐỒ LỊCH SỬ (MODULE 4) */}
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+          <div className="icon-box">
             <ChartIcon size={20} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-800">Real-time Analytics</h3>
-            <p className="text-sm text-slate-500">Live sensor data tracking</p>
+            <h3 className="text-lg font-bold card-title">Real-time Analytics</h3>
+            <p className="text-sm card-muted">Live sensor data tracking</p>
           </div>
         </div>
 

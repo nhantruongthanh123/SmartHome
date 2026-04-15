@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import mqtt from 'mqtt';
 import { MQTT_CONFIG } from '../config/mqtt';
 
@@ -21,25 +21,28 @@ export function useSensorMQTT() {
   const [humiHistory, setHumiHistory] = useState<ChartDataPoint[]>([]);
   const [lightHistory, setLightHistory] = useState<ChartDataPoint[]>([]);
 
-  const [client, setClient] = useState<mqtt.MqttClient | null>(null);
+  const clientRef = useRef<mqtt.MqttClient | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
+    if (!MQTT_CONFIG.host || !MQTT_CONFIG.username || !MQTT_CONFIG.apiKey) {
+      console.error('Missing MQTT environment variables. Check NEXT_PUBLIC_ADAFRUIT_* values.');
+      return;
+    }
 
     const mqttClient = mqtt.connect(MQTT_CONFIG.host!, {
       username: MQTT_CONFIG.username!,
       password: MQTT_CONFIG.apiKey!,
       clientId: `nextjs_client_${Math.random().toString(16).slice(3)}`,
-      clean: true, 
+      clean: true,
+      reconnectPeriod: 3000,
     });
 
-    if (mqttClient.connected === false) {
-      return;
-    }
+    console.log('🔌 Đang kết nối MQTT...');
 
     mqttClient.on('connect', () => {
       setIsConnected(true);
-      setClient(mqttClient);
+      clientRef.current = mqttClient;
 
       const sensorFeeds = [
         'bbc-temp',
@@ -82,19 +85,27 @@ export function useSensorMQTT() {
       console.error('❌ MQTT Error:', err);
     });
 
-    mqttClient.on('close', () => setIsConnected(false));
+    mqttClient.on('close', () => {
+      setIsConnected(false);
+      clientRef.current = null;
+    });
     
     return () => {
-      if (mqttClient) mqttClient.end();
+      mqttClient.removeAllListeners();
+      mqttClient.end(true);
+      clientRef.current = null;
+      setIsConnected(false);
     };
   }, []);
 
-  const toggleDevice = (feedKey: string, status: 'ON' | 'OFF') => {
-    if (client && isConnected) {
-      const message = status === 'ON' ? '1' : '0';
-      client.publish(`${MQTT_CONFIG.username}/feeds/${feedKey}`, message);
-    }
-  };
+  const toggleDevice = useCallback((feedKey: string, status: 'ON' | 'OFF') => {
+    const mqttClient = clientRef.current;
+    if (!mqttClient || !isConnected || !MQTT_CONFIG.username) return;
+
+    const mappedFeed = MQTT_CONFIG.feeds[feedKey as keyof typeof MQTT_CONFIG.feeds] ?? feedKey;
+    const message = status === 'ON' ? '1' : '0';
+    mqttClient.publish(`${MQTT_CONFIG.username}/feeds/${mappedFeed}`, message);
+  }, [isConnected]);
 
   return { 
     temperature, humidity, light, 

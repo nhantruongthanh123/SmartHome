@@ -41,7 +41,7 @@ export default function DeviceCard({
       <div className="flex justify-between items-start">
         {/* Icon đổi màu */}
         <div
-          className={`p-3 rounded-2xl transition-all duration-300 ${active ? "bg-blue-600 text-white shadow-lg shadow-blue-200" : "device-icon-off"}`}
+          className={`p-3 rounded-2xl transition-all duration-300 ${active ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"}`}
         >
           {icon}
         </div>

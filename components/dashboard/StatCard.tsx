@@ -18,10 +18,10 @@ export default function StatCard({
   color = "blue",
 }: StatCardProps) {
   const colorClasses: Record<string, string> = {
-    blue: "bg-blue-50 text-blue-600",
-    orange: "bg-orange-50 text-orange-600",
-    red: "bg-red-50 text-red-600",
-    yellow: "bg-yellow-50 text-yellow-600",
+    blue: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",
+    orange: "bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400",
+    red: "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400",
+    yellow: "bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400",
   };
 
   return (
