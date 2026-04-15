@@ -21,6 +21,11 @@ export function useSensorMQTT() {
   const [humidity, setHumidity] = useState<SensorData>({ value: 0, lastUpdated: null });
   const [light, setLight] = useState<SensorData>({ value: 0, lastUpdated: null });
   
+  // States for device synchronization (two-way)
+  const [ledStatus, setLedStatus] = useState<boolean>(false);
+  const [fanStatus, setFanStatus] = useState<boolean>(false);
+  const [pumpStatus, setPumpStatus] = useState<boolean>(false);
+  
   const [tempHistory, setTempHistory] = useState<ChartDataPoint[]>([]);
   const [humiHistory, setHumiHistory] = useState<ChartDataPoint[]>([]);
   const [lightHistory, setLightHistory] = useState<ChartDataPoint[]>([]);
@@ -71,7 +76,34 @@ export function useSensorMQTT() {
       }
     };
 
+    const fetchInitialDeviceStats = async () => {
+      const { username, apiKey } = MQTT_CONFIG;
+      if (!username || !apiKey) return;
+
+      const deviceFeeds = [
+        { key: 'bbc-led', setter: setLedStatus },
+        { key: 'bbc-fan', setter: setFanStatus },
+        { key: 'bbc-pump', setter: setPumpStatus }
+      ];
+
+      for (const feed of deviceFeeds) {
+        try {
+          const res = await fetch(
+            `https://io.adafruit.com/api/v2/${username}/feeds/${feed.key}/data/last`,
+            { headers: { 'X-AIO-Key': apiKey } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            feed.setter(data.value === '1');
+          }
+        } catch (err) {
+          console.error(`Error fetching last value for ${feed.key}:`, err);
+        }
+      }
+    };
+
     fetchInitialData();
+    fetchInitialDeviceStats();
   }, []);
 
   useEffect(() => {
@@ -94,7 +126,7 @@ export function useSensorMQTT() {
       setIsConnected(true);
       clientRef.current = mqttClient;
 
-      const feedsToSubscribe = ['bbc-temp', 'bbc-humidity', 'bbc-light'];
+      const feedsToSubscribe = ['bbc-temp', 'bbc-humidity', 'bbc-light', 'bbc-led', 'bbc-fan', 'bbc-pump'];
       feedsToSubscribe.forEach(feed => {
         const topic = `${MQTT_CONFIG.username}/feeds/${feed}`;
         mqttClient.subscribe(topic);
@@ -119,6 +151,16 @@ export function useSensorMQTT() {
       else if (topic.includes('bbc-light')) {
         setLight({ value, lastUpdated: now });
         setLightHistory(prev => [...prev.slice(-19), newPoint]); 
+      }
+      // Update Device Status Feedback
+      else if (topic.includes('bbc-led')) {
+        setLedStatus(message.toString() === '1');
+      }
+      else if (topic.includes('bbc-fan')) {
+        setFanStatus(message.toString() === '1');
+      }
+      else if (topic.includes('bbc-pump')) {
+        setPumpStatus(message.toString() === '1');
       }
     });
 
@@ -156,6 +198,7 @@ export function useSensorMQTT() {
     light: light.value,
     lightUpdatedAt: light.lastUpdated,
     tempHistory, humiHistory, lightHistory, 
+    ledStatus, fanStatus, pumpStatus,
     toggleDevice, isConnected 
   };
 }

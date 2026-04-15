@@ -8,13 +8,13 @@ export async function GET() {
     const session = await auth();
 
     // 2. Nếu chưa đăng nhập, chặn lại ngay
-    if (!session || !session.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ message: "Không có quyền truy cập" }, { status: 401 });
     }
 
-    // 3. Dùng Email từ session để tìm người dùng trong Database
+    // 3. Dùng ID từ session để tìm người dùng trong Database (Nhanh và chính xác hơn)
     const currentUser = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: session.user.id },
       // Chỉ lấy những trường cần thiết để bảo mật (tuyệt đối không lấy password)
       select: {
         id: true,
@@ -42,7 +42,7 @@ export async function GET() {
 export async function PUT(request: Request) {
   try {
     const session = await auth();
-    if (!session || !session.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -76,7 +76,7 @@ export async function PUT(request: Request) {
 
     // 3. Cập nhật Database
     const updatedUser = await prisma.user.update({
-      where: { email: session.user.email },
+      where: { id: session.user.id },
       data: {
         name: name,
         image: finalImageUrl,

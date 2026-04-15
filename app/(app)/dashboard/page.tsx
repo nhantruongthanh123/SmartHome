@@ -23,9 +23,32 @@ export default function DashboardPage() {
   } = useSensorMQTT();
 
   const [isAutoMode, setIsAutoMode] = useState(true);
+  const [thresholds, setThresholds] = useState<any[]>([]);
+
+  // --- FETCH THRESHOLDS (Dynamic Automation) ---
+  useEffect(() => {
+    const fetchThresholds = async () => {
+      try {
+        const res = await fetch("/api/thresholds");
+        if (res.ok) {
+          const data = await res.json();
+          setThresholds(data);
+        }
+      } catch (err) {
+        console.error("Failed to load thresholds for dashboard");
+      }
+    };
+    fetchThresholds();
+  }, []);
+
+  const getLimit = (type: string) => {
+    const t = thresholds.find(item => item.deviceType === type);
+    return t || { minVal: 0, maxVal: 0, isActive: false };
+  };
 
   // --- LOGIC MODULE 2: GIÁM SÁT & CẢNH BÁO ---
   useEffect(() => {
+    // 1. Cảnh báo nhiệt độ (vẫn giữ cố định 35°C vì đây là mức nguy hiểm)
     if (temperature > 35) {
       toast.error("Warning: Temperature too high!", {
         description: `Current: ${temperature}°C. System will automatically activate cooling.`,
@@ -33,14 +56,31 @@ export default function DashboardPage() {
       });
     }
 
-    if (isAutoMode && isConnected) {
-      if (temperature > 30) toggleDevice("fan" as any, "ON");
-      else if (temperature < 28) toggleDevice("fan" as any, "OFF");
+    // 2. Tự động điều khiển dựa trên ngưỡng động
+    if (isAutoMode && isConnected && thresholds.length > 0) {
+      const tempLimits = getLimit("TEMPERATURE");
+      const lightLimits = getLimit("LIGHT");
+      const humiLimits = getLimit("HUMIDITY");
 
-      if (light < 200) toggleDevice("led" as any, "ON");
-      else if (light > 500) toggleDevice("led" as any, "OFF");
+      // Logic Quạt (FAN) - Bật khi nóng (> maxVal), tắt khi mát (< minVal)
+      if (tempLimits.isActive) {
+        if (temperature > tempLimits.maxVal) toggleDevice("fan" as any, "ON");
+        else if (temperature < tempLimits.minVal) toggleDevice("fan" as any, "OFF");
+      }
+
+      // Logic Đèn (LED) - Bật khi tối (< minVal), tắt khi sáng (> maxVal)
+      if (lightLimits.isActive) {
+        if (light < lightLimits.minVal) toggleDevice("led" as any, "ON");
+        else if (light > lightLimits.maxVal) toggleDevice("led" as any, "OFF");
+      }
+
+      // Logic Máy bơm (PUMP) - Bật khi khô (< minVal), tắt khi đủ ẩm (> maxVal)
+      if (humiLimits.isActive) {
+        if (humidity < humiLimits.minVal) toggleDevice("pump" as any, "ON");
+        else if (humidity > humiLimits.maxVal) toggleDevice("pump" as any, "OFF");
+      }
     }
-  }, [temperature, light, isAutoMode, isConnected, toggleDevice]);
+  }, [temperature, humidity, light, isAutoMode, isConnected, toggleDevice, thresholds]);
 
   return (
     <div className="flex flex-col gap-8 p-4 max-w-7xl mx-auto bg-main min-h-full">

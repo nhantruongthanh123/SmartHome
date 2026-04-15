@@ -1,128 +1,198 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DeviceCard from "@/components/devices/DeviceCard";
 import { useSensorMQTT } from "@/src/hooks/useSensorMQTT";
-import { Sun, Wind, Droplets } from "lucide-react";
+import { Sun, Wind, Droplets, Save, Loader2 } from "lucide-react";
+import { toast, Toaster } from "sonner";
 
-// --- Component con: Thanh trượt độ sáng có nhảy số ---
-function BrightnessSlider({
-  initialValue = 80,
-  onChange,
+// --- Component con: Nhập ngưỡng Min/Max ---
+function ThresholdSettings({
+  label,
+  unit,
+  initialData,
+  onSave,
+  isSaving
 }: {
-  initialValue?: number;
-  onChange?: (val: number) => void;
+  label: string;
+  unit: string;
+  initialData: { minVal: number; maxVal: number; isActive: boolean };
+  onSave: (min: number, max: number, active: boolean) => void;
+  isSaving?: boolean;
 }) {
-  const [value, setValue] = useState(initialValue);
+  const [min, setMin] = useState(initialData.minVal);
+  const [max, setMax] = useState(initialData.maxVal);
+  const [active, setActive] = useState(initialData.isActive);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVal = parseInt(e.target.value);
-    setValue(newVal);
-    if (onChange) onChange(newVal);
-  };
+  useEffect(() => {
+    setMin(initialData.minVal);
+    setMax(initialData.maxVal);
+    setActive(initialData.isActive);
+  }, [initialData]);
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex justify-between text-[13px] font-bold card-muted uppercase tracking-wider">
-        <span>Manual Brightness</span>
-        <span className="text-blue-600 dark:text-blue-400 font-bold">{value}%</span>
+    <div className="space-y-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-border">
+      <div className="flex justify-between items-center">
+        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{label} Settings</span>
+        <button
+          onClick={() => setActive(!active)}
+          className={`w-8 h-4 rounded-full transition-all ${active ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'}`}
+        >
+          <div className={`w-3 h-3 bg-white rounded-full transition-all mt-0.5 ml-0.5 ${active ? 'translate-x-4' : ''}`} />
+        </button>
       </div>
-      <input
-        type="range"
-        min="0"
-        max="100"
-        value={value}
-        onChange={handleChange}
-        className="w-full h-1 bg-border rounded-lg appearance-none cursor-pointer accent-blue-600 hover:accent-blue-700 transition-all"
-      />
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold card-muted uppercase tracking-wider">Turn ON when</label>
+          <div className="relative">
+            <input
+              type="number"
+              value={min}
+              onChange={(e) => setMin(parseFloat(e.target.value))}
+              className="w-full bg-card border border-border rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-blue-500"
+            />
+            <span className="absolute right-3 top-2 text-[10px] card-muted font-bold">{unit}</span>
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold card-muted uppercase tracking-wider">Turn OFF when</label>
+          <div className="relative">
+            <input
+              type="number"
+              value={max}
+              onChange={(e) => setMax(parseFloat(e.target.value))}
+              className="w-full bg-card border border-border rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-blue-500"
+            />
+            <span className="absolute right-3 top-2 text-[10px] card-muted font-bold">{unit}</span>
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={() => onSave(min, max, active)}
+        disabled={isSaving}
+        className="w-full h-9 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/10 active:scale-95 disabled:opacity-50"
+      >
+        {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+        Save Configuration
+      </button>
     </div>
   );
 }
 
 // --- Component chính: Trang quản lý thiết bị ---
 export default function DevicePage() {
-  const { toggleDevice, isConnected } = useSensorMQTT();
+  const { toggleDevice, isConnected, ledStatus, fanStatus, pumpStatus } = useSensorMQTT();
+  const [thresholds, setThresholds] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [savingKey, setSavingKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchThresholds();
+  }, []);
+
+  const fetchThresholds = async () => {
+    try {
+      const res = await fetch("/api/thresholds");
+      if (res.ok) {
+        const data = await res.json();
+        setThresholds(data);
+      }
+    } catch (err) {
+      toast.error("Failed to load thresholds");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveThreshold = async (type: string, minVal: number, maxVal: number, isActive: boolean) => {
+    setSavingKey(type);
+    try {
+      const res = await fetch("/api/thresholds", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deviceType: type, minVal, maxVal, isActive }),
+      });
+      if (res.ok) {
+        toast.success(`${type} automation thresholds saved!`);
+        fetchThresholds();
+      } else {
+        toast.error("Failed to save changes");
+      }
+    } catch (err) {
+      toast.error("An error occurred");
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  const getThreshold = (type: string) => {
+    return thresholds.find(t => t.deviceType === type) || { minVal: 0, maxVal: 0, isActive: false };
+  };
 
   return (
     <section className="flex flex-col gap-6 bg-main min-h-screen">
+      <Toaster position="top-right" richColors />
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-extrabold card-title">Your Devices</h2>
+          <h2 className="text-2xl font-extrabold card-title">Device Management</h2>
           <p className="text-sm card-muted">
-            Manage and monitor all your smart modules in one place.
+            Configure automation thresholds and manual controls.
           </p>
         </div>
-        <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">
-          {isConnected ? "" : "Disconnected from Server"}
-        </span>
+        <div className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 ${isConnected ? "bg-green-100 text-green-600 dark:bg-green-900/20" : "bg-red-100 text-red-600"}`}>
+          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+          {isConnected ? "Server Connected" : "Connection Lost"}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* THẺ 1: SMART LIGHTING */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* LIGHTING CARD */}
         <DeviceCard
           name="Smart Lighting"
           icon={<Sun size={24} />}
-          onToggle={(status) =>
-            toggleDevice("led" as any, status ? "ON" : "OFF")
-          }
+          onToggle={(status) => toggleDevice("led" as any, status ? "ON" : "OFF")}
+          defaultOn={ledStatus}
         >
-          <div className="flex flex-col gap-4">
-            <BrightnessSlider
-              initialValue={80}
-              onChange={(val) => console.log("Brightness level:", val)}
-            />
-
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                className="w-4 h-4 rounded border-border text-blue-600 focus:ring-blue-500 accent-blue-600"
-              />
-              <label className="text-[10px] font-bold card-muted uppercase tracking-wider">
-                Enable Light Threshold
-              </label>
-            </div>
-          </div>
+          <ThresholdSettings
+            label="LUX"
+            unit="lx"
+            initialData={getThreshold("LIGHT")}
+            isSaving={savingKey === "LIGHT"}
+            onSave={(min, max, active) => handleSaveThreshold("LIGHT", min, max, active)}
+          />
         </DeviceCard>
 
-        {/* THẺ 2: COOLING FAN */}
+        {/* FAN CARD */}
         <DeviceCard
           name="Cooling Fan"
           icon={<Wind size={24} />}
-          onToggle={(status) =>
-            toggleDevice("fan" as any, status ? "ON" : "OFF")
-          }
+          onToggle={(status) => toggleDevice("fan" as any, status ? "ON" : "OFF")}
+          defaultOn={fanStatus}
         >
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              className="w-4 h-4 rounded border-border text-blue-600 focus:ring-blue-500 accent-blue-600"
-            />
-            <label className="text-[10px] font-bold card-muted uppercase tracking-wider">
-              Enable Auto Mode (28°C Threshold)
-            </label>
-          </div>
+          <ThresholdSettings
+            label="TEMP"
+            unit="°C"
+            initialData={getThreshold("TEMPERATURE")}
+            isSaving={savingKey === "TEMPERATURE"}
+            onSave={(min, max, active) => handleSaveThreshold("TEMPERATURE", min, max, active)}
+          />
         </DeviceCard>
 
-        {/* THẺ 3: SMART PUMP*/}
+        {/* PUMP CARD */}
         <DeviceCard
           name="Smart Pump"
           icon={<Droplets size={24} />}
-          onToggle={(status) =>
-            toggleDevice("pump" as any, status ? "ON" : "OFF")
-          }
+          onToggle={(status) => toggleDevice("pump" as any, status ? "ON" : "OFF")}
+          defaultOn={pumpStatus}
         >
-          <div className="flex flex-col gap-2">
-            <p className="text-[10px] font-bold card-muted uppercase tracking-wider">
-              Recent Activity
-            </p>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full" />
-              <p className="text-[10px] card-muted font-medium">
-                Last run:{" "}
-                <span className="font-bold card-title">Auto Mode</span> - 5
-                mins ago
-              </p>
-            </div>
-          </div>
+          <ThresholdSettings
+            label="MOISTURE"
+            unit="%"
+            initialData={getThreshold("HUMIDITY")}
+            isSaving={savingKey === "HUMIDITY"}
+            onSave={(min, max, active) => handleSaveThreshold("HUMIDITY", min, max, active)}
+          />
         </DeviceCard>
       </div>
     </section>

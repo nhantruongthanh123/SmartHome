@@ -11,6 +11,7 @@ export const MQTT_CONFIG = {
     humidity: 'bbc-humidity',      
     light: 'bbc-light',
     led: 'bbc-led',
-    fan: 'bbc-fan'
+    fan: 'bbc-fan',
+    pump: 'bbc-pump'
   }
 };
