@@ -4,6 +4,7 @@ import DeviceCard from "@/components/devices/DeviceCard";
 import { useSensorMQTT } from "@/src/hooks/useSensorMQTT";
 import { Sun, Wind, Droplets, Save, Loader2 } from "lucide-react";
 import { toast, Toaster } from "sonner";
+import { Threshold, DeviceType } from "@/src/types/threshold";
 
 // --- Component con: Nhập ngưỡng Min/Max ---
 function ThresholdSettings({
@@ -15,18 +16,18 @@ function ThresholdSettings({
 }: {
   label: string;
   unit: string;
-  initialData: { minVal: number; maxVal: number; isActive: boolean };
+  initialData: Partial<Threshold>;
   onSave: (min: number, max: number, active: boolean) => void;
   isSaving?: boolean;
 }) {
-  const [min, setMin] = useState(initialData.minVal);
-  const [max, setMax] = useState(initialData.maxVal);
-  const [active, setActive] = useState(initialData.isActive);
+  const [min, setMin] = useState(initialData.minVal || 0);
+  const [max, setMax] = useState(initialData.maxVal || 0);
+  const [active, setActive] = useState(initialData.isActive || false);
 
   useEffect(() => {
-    setMin(initialData.minVal);
-    setMax(initialData.maxVal);
-    setActive(initialData.isActive);
+    setMin(initialData.minVal ?? 0);
+    setMax(initialData.maxVal ?? 0);
+    setActive(initialData.isActive ?? false);
   }, [initialData]);
 
   return (
@@ -83,9 +84,9 @@ function ThresholdSettings({
 // --- Component chính: Trang quản lý thiết bị ---
 export default function DevicePage() {
   const { toggleDevice, isConnected, ledStatus, fanStatus, pumpStatus } = useSensorMQTT();
-  const [thresholds, setThresholds] = useState<any[]>([]);
+  const [thresholds, setThresholds] = useState<Threshold[]>([]);
   const [loading, setLoading] = useState(true);
-  const [savingKey, setSavingKey] = useState<string | null>(null);
+  const [savingKey, setSavingKey] = useState<DeviceType | string | null>(null);
 
   useEffect(() => {
     fetchThresholds();
@@ -105,7 +106,7 @@ export default function DevicePage() {
     }
   };
 
-  const handleSaveThreshold = async (type: string, minVal: number, maxVal: number, isActive: boolean) => {
+  const handleSaveThreshold = async (type: DeviceType | string, minVal: number, maxVal: number, isActive: boolean) => {
     setSavingKey(type);
     try {
       const res = await fetch("/api/thresholds", {
@@ -126,8 +127,8 @@ export default function DevicePage() {
     }
   };
 
-  const getThreshold = (type: string) => {
-    return thresholds.find(t => t.deviceType === type) || { minVal: 0, maxVal: 0, isActive: false };
+  const getThreshold = (type: string): Threshold => {
+    return thresholds.find(t => t.deviceType === type) || { userId: '', deviceType: type, minVal: 0, maxVal: 0, isActive: false };
   };
 
   return (

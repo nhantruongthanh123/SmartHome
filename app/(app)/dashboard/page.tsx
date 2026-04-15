@@ -11,6 +11,7 @@ import {
   LineChart as ChartIcon,
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
+import { Threshold, DeviceType } from "@/src/types/threshold";
 
 export default function DashboardPage() {
   // 1. Rút TOÀN BỘ dữ liệu real-time từ Hook ra (bao gồm cả mảng Lịch sử)
@@ -23,7 +24,7 @@ export default function DashboardPage() {
   } = useSensorMQTT();
 
   const [isAutoMode, setIsAutoMode] = useState(true);
-  const [thresholds, setThresholds] = useState<any[]>([]);
+  const [thresholds, setThresholds] = useState<Threshold[]>([]);
 
   // --- FETCH THRESHOLDS (Dynamic Automation) ---
   useEffect(() => {
@@ -41,9 +42,9 @@ export default function DashboardPage() {
     fetchThresholds();
   }, []);
 
-  const getLimit = (type: string) => {
+  const getLimit = (type: DeviceType | string): Threshold => {
     const t = thresholds.find(item => item.deviceType === type);
-    return t || { minVal: 0, maxVal: 0, isActive: false };
+    return t || { userId: '', deviceType: type, minVal: 0, maxVal: 0, isActive: false };
   };
 
   // --- LOGIC MODULE 2: GIÁM SÁT & CẢNH BÁO ---
@@ -64,20 +65,20 @@ export default function DashboardPage() {
 
       // Logic Quạt (FAN) - Bật khi nóng (> maxVal), tắt khi mát (< minVal)
       if (tempLimits.isActive) {
-        if (temperature > tempLimits.maxVal) toggleDevice("fan" as any, "ON");
-        else if (temperature < tempLimits.minVal) toggleDevice("fan" as any, "OFF");
+        if (tempLimits.maxVal !== null && temperature > tempLimits.maxVal) toggleDevice("fan" as any, "ON");
+        else if (tempLimits.minVal !== null && temperature < tempLimits.minVal) toggleDevice("fan" as any, "OFF");
       }
 
       // Logic Đèn (LED) - Bật khi tối (< minVal), tắt khi sáng (> maxVal)
       if (lightLimits.isActive) {
-        if (light < lightLimits.minVal) toggleDevice("led" as any, "ON");
-        else if (light > lightLimits.maxVal) toggleDevice("led" as any, "OFF");
+        if (lightLimits.minVal !== null && light < lightLimits.minVal) toggleDevice("led" as any, "ON");
+        else if (lightLimits.maxVal !== null && light > lightLimits.maxVal) toggleDevice("led" as any, "OFF");
       }
 
       // Logic Máy bơm (PUMP) - Bật khi khô (< minVal), tắt khi đủ ẩm (> maxVal)
       if (humiLimits.isActive) {
-        if (humidity < humiLimits.minVal) toggleDevice("pump" as any, "ON");
-        else if (humidity > humiLimits.maxVal) toggleDevice("pump" as any, "OFF");
+        if (humiLimits.minVal !== null && humidity < humiLimits.minVal) toggleDevice("pump" as any, "ON");
+        else if (humiLimits.maxVal !== null && humidity > humiLimits.maxVal) toggleDevice("pump" as any, "OFF");
       }
     }
   }, [temperature, humidity, light, isAutoMode, isConnected, toggleDevice, thresholds]);

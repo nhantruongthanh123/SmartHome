@@ -16,6 +16,7 @@ import {
   Loader2,
   X
 } from "lucide-react";
+import { UserProfile } from "@/src/types/user";
 
 export default function ProfilePage() {
   const { update } = useSession();
@@ -26,12 +27,11 @@ export default function ProfilePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [userData, setUserData] = useState({
+  const [userData, setUserData] = useState<UserProfile>({
     id: "",
     name: "",
     email: "",
-    avatar: "",
-    role: "USER",
+    image: "",
     createdAt: "",
     updatedAt: "",
   });
@@ -49,8 +49,7 @@ export default function ProfilePage() {
             id: data.id,
             name: data.name || "",
             email: data.email || "",
-            role: "USER",
-            avatar: data.image || "",
+            image: data.image || "",
             createdAt: data.createdAt || "",
             updatedAt: data.updatedAt || ""
           });
@@ -87,11 +86,11 @@ export default function ProfilePage() {
     setIsSaving(true);
     try {
       const formData = new FormData();
-      formData.append("name", userData.name);
+      formData.append("name", userData.name || "");
 
       // Nếu người dùng có chọn file mới thì mới gửi đi
       if (selectedFile) {
-        formData.append("image", selectedFile);
+        formData.append("image", selectedFile as Blob);
       }
 
       const res = await fetch("/api/user/profile", {
@@ -101,18 +100,18 @@ export default function ProfilePage() {
 
       if (res.ok) {
         const updatedUser = await res.json();
-        
+
         // Cập nhật state local
         setUserData({
           ...userData,
           name: updatedUser.name,
-          avatar: updatedUser.image
+          image: updatedUser.image
         });
 
         // ĐỒNG BỘ VỚI TOPBAR: Cập nhật NextAuth Session ngay lập tức
         await update({
-          name: updatedUser.name,
-          image: updatedUser.image,
+          name: updatedUser.name || "",
+          image: updatedUser.image || "",
         });
 
         setPreviewImage(null);
@@ -143,10 +142,11 @@ export default function ProfilePage() {
     }
   };
 
-  const formatDateTime = (dateString: string) => {
-    if (!dateString) return "";
+  const formatDateTime = (dateVal: string | Date | undefined) => {
+    if (!dateVal) return "";
 
-    const date = new Date(dateString);
+    const date = new Date(dateVal);
+    if (isNaN(date.getTime())) return "";
 
     return date.toLocaleString("vi-VN", {
       hour: "2-digit",
@@ -189,11 +189,11 @@ export default function ProfilePage() {
                   <div className="w-28 h-28 bg-card p-1.5 rounded-full shadow-xl overflow-hidden border-4 border-white dark:border-slate-800 relative z-10">
                     {/* Opaque layer to ensure background is hidden */}
                     <div className="absolute inset-0 bg-card -z-10" />
-                    
-                    {/* Ưu tiên hiển thị ảnh xem trước (previewImage), nếu không có thì lấy ảnh từ DB (userData.avatar) */}
-                    {previewImage || (userData.avatar && userData.avatar !== "") ? (
+
+                    {/* Ưu tiên hiển thị ảnh xem trước (previewImage), nếu không có thì lấy ảnh từ DB (userData.image) */}
+                    {previewImage || (userData.image && userData.image !== "") ? (
                       <img
-                        src={previewImage || userData.avatar}
+                        src={previewImage || userData.image || ""}
                         alt="Avatar"
                         className="w-full h-full object-cover rounded-full"
                       />
@@ -225,7 +225,7 @@ export default function ProfilePage() {
                   {userData.name}
                 </h3>
                 <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[10px] font-extrabold uppercase tracking-widest rounded-full">
-                  {userData.role}
+                  USER
                 </span>
 
                 <div className="mt-8 space-y-4 text-left">
@@ -335,7 +335,7 @@ export default function ProfilePage() {
                   <input
                     disabled={!isEditing}
                     className="input-field w-full"
-                    value={userData.name}
+                    value={userData.name || ""}
                     onChange={(e) =>
                       setUserData({ ...userData, name: e.target.value })
                     }
@@ -348,7 +348,7 @@ export default function ProfilePage() {
                   <input
                     disabled={true}
                     className="input-field w-full opacity-70"
-                    value={userData.id}
+                    value={userData.id || ""}
                     onChange={(e) =>
                       setUserData({ ...userData, id: e.target.value })
                     }
@@ -361,7 +361,7 @@ export default function ProfilePage() {
                   <input
                     disabled={true}
                     className="input-field w-full opacity-70"
-                    value={userData.email}
+                    value={userData.email || ""}
                     onChange={(e) =>
                       setUserData({ ...userData, email: e.target.value })
                     }

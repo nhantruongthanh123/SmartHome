@@ -4,17 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import mqtt from 'mqtt';
 import { MQTT_CONFIG } from '../config/mqtt';
 
-// Định nghĩa kiểu dữ liệu cho biểu đồ
-export interface ChartDataPoint {
-  id: string;
-  time: string;
-  value: number;
-}
-
-export interface SensorData {
-  value: number;
-  lastUpdated: Date | null;
-}
+import { ChartDataPoint, SensorData } from '../types/sensor';
 
 export function useSensorMQTT() {
   const [temperature, setTemperature] = useState<SensorData>({ value: 0, lastUpdated: null });

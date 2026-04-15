@@ -5,16 +5,39 @@ import { Search, Bell, ChevronDown, User, Settings, LogOut } from "lucide-react"
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { ThemeToggle } from "../toggle/ThemeToggle";
+import { UserProfile } from "@/src/types/user";
 
 export default function Topbar() {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const user = session?.user || {
-    name: "Guest",
-    image: "",
+  const [userData, setUserData] = useState<UserProfile | null>(null);
+ 
+  // Unified user object for display
+  const userDisplay = {
+    name: userData?.name || session?.user?.name || "Guest",
+    email: userData?.email || (session?.user as any)?.email || "",
+    image: userData?.image || session?.user?.image || "",
   };
+
+  // Fetch real-time user info from API
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (session?.user?.id) {
+        try {
+          const res = await fetch("/api/user/profile");
+          if (res.ok) {
+            const data = await res.json();
+            setUserData(data);
+          }
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      }
+    };
+
+    fetchProfile();
+  }, [session?.user?.id]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -65,7 +88,7 @@ export default function Topbar() {
           >
             <div className="text-right hidden md:block">
               <p className="topbar-user-name text-[14px] font-bold leading-tight transition-colors">
-                {user.name}
+                {userDisplay.name}
               </p>
               <p className="topbar-user-role text-[11px] font-semibold uppercase tracking-wider mt-0.5">
                 {"USER"}
@@ -73,9 +96,9 @@ export default function Topbar() {
             </div>
 
             <div className="w-10 h-10 bg-slate-100 dark:bg-[#273449] rounded-2xl overflow-hidden flex items-center justify-center text-[#2563eb] dark:text-blue-400 text-[13px] font-bold shadow-sm group-hover:rotate-3 transition-all border-2 border-white dark:border-[#334155]">
-              {user.image && user.image !== "" ? (
+              {userDisplay.image && userDisplay.image !== "" ? (
                 <img
-                  src={user.image}
+                  src={userDisplay.image}
                   alt="avatar"
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -83,7 +106,7 @@ export default function Topbar() {
                   }}
                 />
               ) : (
-                <span>{user.name?.charAt(0).toUpperCase()}</span>
+                <span>{userDisplay.name?.charAt(0).toUpperCase()}</span>
               )}
             </div>
 
@@ -99,7 +122,7 @@ export default function Topbar() {
             <div className="absolute right-0 mt-3 w-64 bg-card rounded-[1.5rem] shadow-2xl border border-border py-2 animate-in fade-in slide-in-from-top-2 duration-200 z-[60]">
               <div className="px-5 py-4 border-b border-border mb-2">
                 <p className="text-[10px] font-bold text-muted uppercase tracking-[0.15em] mb-1">Account</p>
-                <p className="text-sm font-bold text-text truncate">{user.email || user.name}</p>
+                <p className="text-sm font-bold text-text truncate">{userDisplay.email || userDisplay.name}</p>
               </div>
 
               <div className="px-2 space-y-1">
