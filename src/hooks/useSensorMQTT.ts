@@ -11,18 +11,68 @@ export interface ChartDataPoint {
   value: number;
 }
 
+export interface SensorData {
+  value: number;
+  lastUpdated: Date | null;
+}
+
 export function useSensorMQTT() {
-  const [temperature, setTemperature] = useState<number>(0);
-  const [humidity, setHumidity] = useState<number>(0);
-  const [light, setLight] = useState<number>(0);
+  const [temperature, setTemperature] = useState<SensorData>({ value: 0, lastUpdated: null });
+  const [humidity, setHumidity] = useState<SensorData>({ value: 0, lastUpdated: null });
+  const [light, setLight] = useState<SensorData>({ value: 0, lastUpdated: null });
   
-  // Lưu trữ mảng dữ liệu cho biểu đồ (Module 4)
   const [tempHistory, setTempHistory] = useState<ChartDataPoint[]>([]);
   const [humiHistory, setHumiHistory] = useState<ChartDataPoint[]>([]);
   const [lightHistory, setLightHistory] = useState<ChartDataPoint[]>([]);
 
   const clientRef = useRef<mqtt.MqttClient | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+
+  // --- REST API: Fetch Initial Data & History ---
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      const { username, apiKey } = MQTT_CONFIG;
+      if (!username || !apiKey) return;
+
+      const sensorFeeds = [
+        { key: 'bbc-temp', setter: setTemperature, historySetter: setTempHistory },
+        { key: 'bbc-humidity', setter: setHumidity, historySetter: setHumiHistory },
+        { key: 'bbc-light', setter: setLight, historySetter: setLightHistory }
+      ];
+
+      for (const feed of sensorFeeds) {
+        try {
+          // 1. Fetch last 20 points for charts
+          const historyRes = await fetch(
+            `https://io.adafruit.com/api/v2/${username}/feeds/${feed.key}/data?limit=20`,
+            { headers: { 'X-AIO-Key': apiKey } }
+          );
+          if (historyRes.ok) {
+            const data = await historyRes.json();
+            const points: ChartDataPoint[] = data.reverse().map((item: any) => ({
+              id: item.id,
+              time: new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+              value: parseFloat(item.value)
+            }));
+            feed.historySetter(points);
+
+            // 2. Set current value from the latest point
+            if (points.length > 0) {
+              const latest = data[data.length - 1]; // data is reversed now, so last item is newest
+              feed.setter({
+                value: parseFloat(latest.value),
+                lastUpdated: new Date(latest.created_at)
+              });
+            }
+          }
+        } catch (err) {
+          console.error(`Error fetching history for ${feed.key}:`, err);
+        }
+      }
+    };
+
+    fetchInitialData();
+  }, []);
 
   useEffect(() => {
     if (!MQTT_CONFIG.host || !MQTT_CONFIG.username || !MQTT_CONFIG.apiKey) {
@@ -38,45 +88,36 @@ export function useSensorMQTT() {
       reconnectPeriod: 3000,
     });
 
-    console.log('🔌 Đang kết nối MQTT...');
+    console.log('🔌 Connecting to MQTT...');
 
     mqttClient.on('connect', () => {
       setIsConnected(true);
       clientRef.current = mqttClient;
 
-      const sensorFeeds = [
-        'bbc-temp',
-        'bbc-humidity',
-        'bbc-light' 
-      ];
-      
-      sensorFeeds.forEach(feed => {
+      const feedsToSubscribe = ['bbc-temp', 'bbc-humidity', 'bbc-light'];
+      feedsToSubscribe.forEach(feed => {
         const topic = `${MQTT_CONFIG.username}/feeds/${feed}`;
         mqttClient.subscribe(topic);
-        console.log(`📡 Subscribed to: ${topic}`);
       });
     });
 
     mqttClient.on('message', (topic, message) => {
       const value = Number(parseFloat(message.toString()).toFixed(2));
-      
-
-      const timeLabel = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const now = new Date();
+      const timeLabel = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       const uniqueId = Math.random().toString(36).substring(7);
       const newPoint: ChartDataPoint = { id: uniqueId, time: timeLabel, value: value };
 
-      console.log(`📩 Có dữ liệu mới từ [${topic}]: ${value}`);
-
       if (topic.includes('bbc-temp')) {
-        setTemperature(value);
+        setTemperature({ value, lastUpdated: now });
         setTempHistory(prev => [...prev.slice(-19), newPoint]);
       } 
       else if (topic.includes('bbc-humidity')) {
-        setHumidity(value);
+        setHumidity({ value, lastUpdated: now });
         setHumiHistory(prev => [...prev.slice(-19), newPoint]); 
       } 
       else if (topic.includes('bbc-light')) {
-        setLight(value);
+        setLight({ value, lastUpdated: now });
         setLightHistory(prev => [...prev.slice(-19), newPoint]); 
       }
     });
@@ -108,7 +149,12 @@ export function useSensorMQTT() {
   }, [isConnected]);
 
   return { 
-    temperature, humidity, light, 
+    temperature: temperature.value,
+    tempUpdatedAt: temperature.lastUpdated,
+    humidity: humidity.value,
+    humiUpdatedAt: humidity.lastUpdated,
+    light: light.value,
+    lightUpdatedAt: light.lastUpdated,
     tempHistory, humiHistory, lightHistory, 
     toggleDevice, isConnected 
   };

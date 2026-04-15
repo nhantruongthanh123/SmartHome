@@ -1,9 +1,9 @@
 // Đường dẫn: app/(app)/dashboard/page.tsx
 "use client";
 import React, { useEffect, useState } from "react";
-import { useSensorMQTT } from "@/src/hooks/useSensorMQTT"; 
-import SensorCard from "@/components/dashboard/StatCard"; 
-import SensorChart from "@/components/dashboard/SensorChart"; 
+import { useSensorMQTT } from "@/src/hooks/useSensorMQTT";
+import SensorCard from "@/components/dashboard/StatCard";
+import SensorChart from "@/components/dashboard/SensorChart";
 import {
   Thermometer,
   Droplets,
@@ -14,12 +14,14 @@ import { toast, Toaster } from "sonner";
 
 export default function DashboardPage() {
   // 1. Rút TOÀN BỘ dữ liệu real-time từ Hook ra (bao gồm cả mảng Lịch sử)
-  const { 
-    temperature, humidity, light, 
+  const {
+    temperature, tempUpdatedAt,
+    humidity, humiUpdatedAt,
+    light, lightUpdatedAt,
     tempHistory, humiHistory, lightHistory, // <--- Lấy mảng dữ liệu thật
-    toggleDevice, isConnected 
+    toggleDevice, isConnected
   } = useSensorMQTT();
-  
+
   const [isAutoMode, setIsAutoMode] = useState(true);
 
   // --- LOGIC MODULE 2: GIÁM SÁT & CẢNH BÁO ---
@@ -60,11 +62,10 @@ export default function DashboardPage() {
 
         <button
           onClick={() => setIsAutoMode(!isAutoMode)}
-          className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm border ${
-            isAutoMode
-              ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-              : "bg-card text-muted border-border hover:bg-slate-50 dark:hover:bg-slate-800"
-          }`}
+          className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm border ${isAutoMode
+            ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+            : "bg-card text-muted border-border hover:bg-slate-50 dark:hover:bg-slate-800"
+            }`}
         >
           {isAutoMode ? "AUTO MODE: ON" : "AUTO MODE: OFF"}
         </button>
@@ -79,6 +80,7 @@ export default function DashboardPage() {
           icon={<Thermometer size={24} />}
           trend={temperature > 30 ? "High" : "Stable"}
           color={temperature > 35 ? "red" : "blue"}
+          lastUpdated={tempUpdatedAt}
         />
         <SensorCard
           label="Humidity"
@@ -87,6 +89,7 @@ export default function DashboardPage() {
           icon={<Droplets size={24} />}
           trend="Normal"
           color="blue"
+          lastUpdated={humiUpdatedAt}
         />
         <SensorCard
           label="Light"
@@ -95,6 +98,7 @@ export default function DashboardPage() {
           icon={<Sun size={24} />}
           trend={light < 200 ? "Low" : "Good"}
           color="orange"
+          lastUpdated={lightUpdatedAt}
         />
       </div>
 
@@ -113,16 +117,16 @@ export default function DashboardPage() {
         {/* Dùng Grid để chia 2 biểu đồ nằm cạnh nhau trên màn hình to */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Chart Nhiệt độ truyền mảng tempHistory thật vào */}
-          <SensorChart 
-            title="Temperature Trend" 
-            data={tempHistory} 
+          <SensorChart
+            title="Temperature Trend"
+            data={tempHistory}
             color="#ef4444" // Màu đỏ cho nhiệt độ
           />
-          
+
           {/* Chart Độ ẩm truyền mảng humiHistory thật vào */}
-          <SensorChart 
-            title="Humidity Trend" 
-            data={humiHistory} 
+          <SensorChart
+            title="Humidity Trend"
+            data={humiHistory}
             color="#3b82f6" // Màu xanh cho độ ẩm
           />
         </div>

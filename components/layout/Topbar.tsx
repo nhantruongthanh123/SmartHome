@@ -60,9 +60,8 @@ export default function Topbar() {
         <div className="relative" ref={dropdownRef}>
           <div
             onClick={() => setIsOpen(!isOpen)}
-            className={`topbar-user-link flex items-center gap-3 pl-4 cursor-pointer group py-1.5 px-2 rounded-2xl transition-all ${
-              isOpen ? "bg-[#f1f5f9] dark:bg-[#273449]" : ""
-            }`}
+            className={`topbar-user-link flex items-center gap-3 pl-4 cursor-pointer group py-1.5 px-2 rounded-2xl transition-all ${isOpen ? "bg-[#f1f5f9] dark:bg-[#273449]" : ""
+              }`}
           >
             <div className="text-right hidden md:block">
               <p className="topbar-user-name text-[14px] font-bold leading-tight transition-colors">
@@ -90,50 +89,53 @@ export default function Topbar() {
 
             <ChevronDown
               size={14}
-              className={`topbar-user-arrow transition-transform duration-200 ${
-                isOpen ? "rotate-180" : ""
-              }`}
+              className={`topbar-user-arrow transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+                }`}
             />
           </div>
 
           {/* Actual Dropdown Menu */}
           {isOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#1e293b] rounded-2xl shadow-2xl border border-[#dbe2ee] dark:border-[#334155] py-2 animate-in fade-in zoom-in duration-200 z-[60]">
-              <div className="px-4 py-3 border-bottom dark:border-[#334155] mb-2">
-                <p className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider">Account</p>
-                <p className="text-sm font-bold truncate">{user.email || user.name}</p>
+            <div className="absolute right-0 mt-3 w-64 bg-card rounded-[1.5rem] shadow-2xl border border-border py-2 animate-in fade-in slide-in-from-top-2 duration-200 z-[60]">
+              <div className="px-5 py-4 border-b border-border mb-2">
+                <p className="text-[10px] font-bold text-muted uppercase tracking-[0.15em] mb-1">Account</p>
+                <p className="text-sm font-bold text-text truncate">{user.email || user.name}</p>
               </div>
 
-              <Link
-                href="/profile"
-                className="flex items-center gap-3 px-4 py-2 text-sm text-[#475569] dark:text-[#cbd5e1] hover:bg-[#f1f5f9] dark:hover:bg-[#273449] hover:text-[#2563eb] transition-all"
-                onClick={() => setIsOpen(false)}
-              >
-                <User size={16} />
-                <span>My Profile</span>
-              </Link>
+              <div className="px-2 space-y-1">
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-text rounded-xl hover:bg-primary/10 hover:text-primary transition-all"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <User size={18} className="opacity-70" />
+                  <span>My Profile</span>
+                </Link>
 
-              <Link
-                href="/settings"
-                className="flex items-center gap-3 px-4 py-2 text-sm text-[#475569] dark:text-[#cbd5e1] hover:bg-[#f1f5f9] dark:hover:bg-[#273449] hover:text-[#2563eb] transition-all"
-                onClick={() => setIsOpen(false)}
-              >
-                <Settings size={16} />
-                <span>Settings</span>
-              </Link>
+                <Link
+                  href="/settings"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-text rounded-xl hover:bg-primary/10 hover:text-primary transition-all"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Settings size={18} className="opacity-70" />
+                  <span>Settings</span>
+                </Link>
+              </div>
 
-              <div className="h-[1px] bg-[#dbe2ee] dark:bg-[#334155] my-2 mx-2" />
+              <div className="h-px bg-border my-2 mx-4" />
 
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  signOut({ callbackUrl: "/login" });
-                }}
-                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all font-medium"
-              >
-                <LogOut size={16} />
-                <span>Sign out</span>
-              </button>
+              <div className="px-2">
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    signOut({ callbackUrl: "/login" });
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-500 rounded-xl hover:bg-red-500/10 transition-all"
+                >
+                  <LogOut size={18} />
+                  <span>Sign out</span>
+                </button>
+              </div>
             </div>
           )}
         </div>

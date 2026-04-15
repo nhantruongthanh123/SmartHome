@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { toast, Toaster } from "sonner";
 import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import {
   User,
   Mail,
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 export default function ProfilePage() {
+  const { update } = useSession();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -100,11 +101,20 @@ export default function ProfilePage() {
 
       if (res.ok) {
         const updatedUser = await res.json();
+        
+        // Cập nhật state local
         setUserData({
           ...userData,
           name: updatedUser.name,
           avatar: updatedUser.image
         });
+
+        // ĐỒNG BỘ VỚI TOPBAR: Cập nhật NextAuth Session ngay lập tức
+        await update({
+          name: updatedUser.name,
+          image: updatedUser.image,
+        });
+
         setPreviewImage(null);
         setSelectedFile(null);
         setIsEditing(false);
@@ -146,6 +156,14 @@ export default function ProfilePage() {
       year: "numeric",
     });
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-main flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-main p-4 lg:p-10 animate-in fade-in duration-500">
