@@ -8,10 +8,14 @@ import {
   Thermometer,
   Droplets,
   Sun,
+  ShieldAlert,
+  ShieldCheck,
   LineChart as ChartIcon,
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { Threshold, DeviceType } from "@/src/types/threshold";
+import { DoorLog } from "@/src/types/door";
+import DoorActivityLog from "@/components/dashboard/DoorActivityLog";
 
 export default function DashboardPage() {
   // 1. Rút TOÀN BỘ dữ liệu real-time từ Hook ra (bao gồm cả mảng Lịch sử)
@@ -19,12 +23,14 @@ export default function DashboardPage() {
     temperature, tempUpdatedAt,
     humidity, humiUpdatedAt,
     light, lightUpdatedAt,
-    tempHistory, humiHistory, lightHistory, // <--- Lấy mảng dữ liệu thật
+    doorStatus, motionStatus, doorTimer,
+    tempHistory, humiHistory, lightHistory,
     toggleDevice, isConnected
   } = useSensorMQTT();
 
-  const [isAutoMode, setIsAutoMode] = useState(true);
+  const [isAutoMode, setIsAutoMode] = useState(false);
   const [thresholds, setThresholds] = useState<Threshold[]>([]);
+  const [doorLogs, setDoorLogs] = useState<DoorLog[]>([]);
 
   // --- FETCH THRESHOLDS (Dynamic Automation) ---
   useEffect(() => {
@@ -41,6 +47,66 @@ export default function DashboardPage() {
     };
     fetchThresholds();
   }, []);
+
+  // --- FETCH DOOR LOGS ---
+  const fetchDoorLogs = async () => {
+    try {
+      const res = await fetch("/api/door/log");
+      if (res.ok) {
+        const data = await res.json();
+        setDoorLogs(data);
+      }
+    } catch (err) {
+      console.error("Failed to load door logs");
+    }
+  };
+
+  useEffect(() => {
+    fetchDoorLogs();
+  }, [doorStatus]); // Refresh logs when door status changes
+
+  // --- SYNC AUTO MODE WITH THRESHOLDS ---
+  useEffect(() => {
+    if (thresholds.length > 0) {
+      // Auto Mode is ON if at least one threshold is active
+      const anyActive = thresholds.some(t => 
+        ["LIGHT", "TEMPERATURE", "HUMIDITY"].includes(t.deviceType) && t.isActive
+      );
+      setIsAutoMode(anyActive);
+    }
+  }, [thresholds]);
+
+  const handleToggleAutoMode = async () => {
+    const nextState = !isAutoMode;
+    const sensors = ["LIGHT", "TEMPERATURE", "HUMIDITY"];
+    
+    // Optimistic UI update
+    setIsAutoMode(nextState);
+    
+    try {
+      // Update all 3 sensor status in parallel
+      await Promise.all(sensors.map(type => 
+        fetch("/api/thresholds", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceType: type, isActive: nextState }),
+        })
+      ));
+      
+      // Re-fetch thresholds to ensure data consistency
+      const res = await fetch("/api/thresholds");
+      if (res.ok) {
+        const data = await res.json();
+        setThresholds(data);
+      }
+      toast.success(`Auto Mode successfully turned ${nextState ? "ON" : "OFF"}`);
+    } catch (err) {
+      console.error("Failed to toggle Auto Mode:", err);
+      toast.error("Failed to update Auto Mode. Please try again.");
+      // Revert state on error
+      setIsAutoMode(!nextState);
+    }
+  };
 
   const getLimit = (type: DeviceType | string): Threshold => {
     const t = thresholds.find(item => item.deviceType === type);
@@ -102,7 +168,7 @@ export default function DashboardPage() {
         </div>
 
         <button
-          onClick={() => setIsAutoMode(!isAutoMode)}
+          onClick={handleToggleAutoMode}
           className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm border ${isAutoMode
             ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
             : "bg-card text-muted border-border hover:bg-slate-50 dark:hover:bg-slate-800"
@@ -113,7 +179,7 @@ export default function DashboardPage() {
       </div>
 
       {/* GRID SENSOR CARDS (MODULE 2) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <SensorCard
           label="Temperature"
           value={temperature.toString()}
@@ -140,6 +206,15 @@ export default function DashboardPage() {
           trend={light < 200 ? "Low" : "Good"}
           color="orange"
           lastUpdated={lightUpdatedAt}
+        />
+        <SensorCard
+          label="Smart Door"
+          value={doorStatus ? "OPEN" : "CLOSED"}
+          unit={""}
+          icon={doorStatus ? <ShieldAlert size={24} /> : <ShieldCheck size={24} />}
+          trend={motionStatus ? "Motion Detected" : "Secure"}
+          color={doorStatus ? "red" : "green"}
+          lastUpdated={new Date()} // Using current time as proxy for "real-time" sync
         />
       </div>
 
@@ -171,6 +246,11 @@ export default function DashboardPage() {
             color="#3b82f6" // Màu xanh cho độ ẩm
           />
         </div>
+      </div>
+
+      {/* DOOR ACTIVITY LOG */}
+      <div className="mt-8">
+        <DoorActivityLog logs={doorLogs} />
       </div>
     </div>
   );

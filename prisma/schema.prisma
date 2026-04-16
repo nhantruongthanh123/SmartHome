@@ -18,6 +18,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   thresholds    Threshold[]
+  doorLogs      DoorLog[]
 
   @@map("users")
 }
@@ -77,4 +78,17 @@ model Threshold {
 
   @@unique([userId, deviceType])
   @@map("device_thresholds")
+}
+
+model DoorLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  openedAt  DateTime @default(now())
+  closedAt  DateTime?
+  duration  Int?     // in seconds
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("door_logs")
 }

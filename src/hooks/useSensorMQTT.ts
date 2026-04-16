@@ -15,13 +15,27 @@ export function useSensorMQTT() {
   const [ledStatus, setLedStatus] = useState<boolean>(false);
   const [fanStatus, setFanStatus] = useState<boolean>(false);
   const [pumpStatus, setPumpStatus] = useState<boolean>(false);
+  const [doorStatus, setDoorStatus] = useState<boolean>(false);
+  const [motionStatus, setMotionStatus] = useState<boolean>(false);
+  const [doorTimer, setDoorTimer] = useState<number>(0);
   
   const [tempHistory, setTempHistory] = useState<ChartDataPoint[]>([]);
   const [humiHistory, setHumiHistory] = useState<ChartDataPoint[]>([]);
   const [lightHistory, setLightHistory] = useState<ChartDataPoint[]>([]);
 
   const clientRef = useRef<mqtt.MqttClient | null>(null);
+  const motionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastLoggedStatusRef = useRef<boolean | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+
+  const toggleDevice = useCallback((feedKey: string, status: 'ON' | 'OFF') => {
+    const mqttClient = clientRef.current;
+    if (!mqttClient || !isConnected || !MQTT_CONFIG.username) return;
+
+    const mappedFeed = MQTT_CONFIG.feeds[feedKey as keyof typeof MQTT_CONFIG.feeds] ?? feedKey;
+    const message = status === 'ON' ? '1' : '0';
+    mqttClient.publish(`${MQTT_CONFIG.username}/feeds/${mappedFeed}`, message);
+  }, [isConnected]);
 
   // --- REST API: Fetch Initial Data & History ---
   useEffect(() => {
@@ -73,7 +87,9 @@ export function useSensorMQTT() {
       const deviceFeeds = [
         { key: 'bbc-led', setter: setLedStatus },
         { key: 'bbc-fan', setter: setFanStatus },
-        { key: 'bbc-pump', setter: setPumpStatus }
+        { key: 'bbc-pump', setter: setPumpStatus },
+        { key: 'bbc-door', setter: setDoorStatus },
+        { key: 'bbc-motion', setter: setMotionStatus }
       ];
 
       for (const feed of deviceFeeds) {
@@ -116,7 +132,7 @@ export function useSensorMQTT() {
       setIsConnected(true);
       clientRef.current = mqttClient;
 
-      const feedsToSubscribe = ['bbc-temp', 'bbc-humidity', 'bbc-light', 'bbc-led', 'bbc-fan', 'bbc-pump'];
+      const feedsToSubscribe = ['bbc-temp', 'bbc-humidity', 'bbc-light', 'bbc-led', 'bbc-fan', 'bbc-pump', 'bbc-door', 'bbc-motion'];
       feedsToSubscribe.forEach(feed => {
         const topic = `${MQTT_CONFIG.username}/feeds/${feed}`;
         mqttClient.subscribe(topic);
@@ -152,6 +168,12 @@ export function useSensorMQTT() {
       else if (topic.includes('bbc-pump')) {
         setPumpStatus(message.toString() === '1');
       }
+      else if (topic.includes('bbc-door')) {
+        setDoorStatus(message.toString() === '1');
+      }
+      else if (topic.includes('bbc-motion')) {
+        setMotionStatus(message.toString() === '1');
+      }
     });
 
     mqttClient.on('error', (err) => {
@@ -171,14 +193,71 @@ export function useSensorMQTT() {
     };
   }, []);
 
-  const toggleDevice = useCallback((feedKey: string, status: 'ON' | 'OFF') => {
-    const mqttClient = clientRef.current;
-    if (!mqttClient || !isConnected || !MQTT_CONFIG.username) return;
+  // --- Automation Logic: Motion -> Door ---
+  useEffect(() => {
+    if (!isConnected) return;
 
-    const mappedFeed = MQTT_CONFIG.feeds[feedKey as keyof typeof MQTT_CONFIG.feeds] ?? feedKey;
-    const message = status === 'ON' ? '1' : '0';
-    mqttClient.publish(`${MQTT_CONFIG.username}/feeds/${mappedFeed}`, message);
-  }, [isConnected]);
+    if (motionStatus) {
+      // Motion Detected -> Open door immediately
+      toggleDevice('door', 'ON');
+      setDoorTimer(0);
+      if (motionTimeoutRef.current) {
+        clearTimeout(motionTimeoutRef.current);
+        motionTimeoutRef.current = null;
+      }
+    } else {
+      // Motion Stopped -> Start 5s countdown
+      setDoorTimer(5);
+      if (motionTimeoutRef.current) clearTimeout(motionTimeoutRef.current);
+
+      motionTimeoutRef.current = setTimeout(() => {
+        toggleDevice('door', 'OFF');
+        setDoorTimer(0);
+        motionTimeoutRef.current = null;
+      }, 5000);
+
+      // UI Countdown sync
+      let timeLeft = 5;
+      const interval = setInterval(() => {
+        timeLeft -= 1;
+        setDoorTimer(timeLeft);
+        if (timeLeft <= 0) clearInterval(interval);
+      }, 1000);
+
+      return () => {
+        clearInterval(interval);
+        if (motionTimeoutRef.current) {
+          clearTimeout(motionTimeoutRef.current);
+          motionTimeoutRef.current = null;
+        }
+      };
+    }
+  }, [motionStatus, isConnected, toggleDevice]);
+
+  // Effect to log door status changes to the database
+  useEffect(() => {
+    if (lastLoggedStatusRef.current === doorStatus) return;
+
+    const logDoorEvent = async () => {
+      try {
+        await fetch('/api/door/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: doorStatus ? 'OPEN' : 'CLOSE' }),
+        });
+        lastLoggedStatusRef.current = doorStatus;
+      } catch (err) {
+        console.error('Failed to log door event:', err);
+      }
+    };
+
+    if (lastLoggedStatusRef.current !== null) {
+      logDoorEvent();
+    } else {
+      // First run - just set the initial status without logging
+      lastLoggedStatusRef.current = doorStatus;
+    }
+  }, [doorStatus]);
 
   return { 
     temperature: temperature.value,
@@ -188,7 +267,7 @@ export function useSensorMQTT() {
     light: light.value,
     lightUpdatedAt: light.lastUpdated,
     tempHistory, humiHistory, lightHistory, 
-    ledStatus, fanStatus, pumpStatus,
+    ledStatus, fanStatus, pumpStatus, doorStatus, motionStatus, doorTimer,
     toggleDevice, isConnected 
   };
 }

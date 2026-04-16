@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import DeviceCard from "@/components/devices/DeviceCard";
 import { useSensorMQTT } from "@/src/hooks/useSensorMQTT";
-import { Sun, Wind, Droplets, Save, Loader2 } from "lucide-react";
+import { Sun, Wind, Droplets, Save, Loader2, DoorOpen, ShieldAlert, ShieldCheck, Clock } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { Threshold, DeviceType } from "@/src/types/threshold";
 
@@ -83,7 +83,11 @@ function ThresholdSettings({
 
 // --- Component chính: Trang quản lý thiết bị ---
 export default function DevicePage() {
-  const { toggleDevice, isConnected, ledStatus, fanStatus, pumpStatus } = useSensorMQTT();
+  const {
+    toggleDevice, isConnected,
+    ledStatus, fanStatus, pumpStatus,
+    doorStatus, motionStatus, doorTimer
+  } = useSensorMQTT();
   const [thresholds, setThresholds] = useState<Threshold[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState<DeviceType | string | null>(null);
@@ -147,7 +151,7 @@ export default function DevicePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8">
         {/* LIGHTING CARD */}
         <DeviceCard
           name="Smart Lighting"
@@ -194,6 +198,28 @@ export default function DevicePage() {
             isSaving={savingKey === "HUMIDITY"}
             onSave={(min, max, active) => handleSaveThreshold("HUMIDITY", min, max, active)}
           />
+        </DeviceCard>
+
+        {/* DOOR CONTROL CARD */}
+        <DeviceCard
+          name="Door Control"
+          statusText={doorStatus ? "DOOR IS OPEN" : "DOOR IS CLOSED"}
+          icon={doorStatus ? <ShieldAlert size={24} /> : <ShieldCheck size={24} />}
+          defaultOn={doorStatus}
+          onToggle={(status) => toggleDevice("door", status ? "ON" : "OFF")}
+        >
+          <div className="space-y-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-border">
+            <p className="text-[10px] card-muted font-medium leading-relaxed">
+              Click the toggle to manually open or close the door.
+            </p>
+
+            <div className={`mt-2 p-3 rounded-xl flex items-center gap-3 transition-colors ${doorStatus ? 'bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800/30' : 'bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30'}`}>
+              <div className={`w-2 h-2 rounded-full ${doorStatus ? 'bg-orange-500 animate-pulse' : 'bg-green-500'}`} />
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${doorStatus ? 'text-orange-600 dark:text-orange-400' : 'text-green-600 dark:text-green-400'}`}>
+                {doorStatus ? "SECURITY ALERT: DOOR OPEN" : "SECURITY SECURE: CLOSED"}
+              </span>
+            </div>
+          </div>
         </DeviceCard>
       </div>
     </section>

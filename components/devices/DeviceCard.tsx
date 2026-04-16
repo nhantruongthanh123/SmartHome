@@ -6,7 +6,6 @@ interface DeviceCardProps {
   statusText?: string;
   icon: React.ReactNode;
   onToggle?: (isOn: boolean) => void;
-  disabled?: boolean;
   defaultOn?: boolean;
   children?: React.ReactNode;
 }
@@ -16,7 +15,6 @@ export default function DeviceCard({
   statusText,
   icon,
   onToggle,
-  disabled,
   defaultOn = false,
   children,
 }: DeviceCardProps) {
@@ -26,9 +24,7 @@ export default function DeviceCard({
   useEffect(() => {
     setActive(defaultOn);
   }, [defaultOn]);
-
   const handleToggle = () => {
-    if (disabled) return;
     const nextState = !active;
     setActive(nextState);
     if (onToggle) onToggle(nextState);
@@ -36,7 +32,7 @@ export default function DeviceCard({
 
   return (
     <div
-      className={`card-surface p-6 rounded-3xl flex flex-col gap-6 transition-all duration-300 ${disabled ? "opacity-50" : ""}`}
+      className="card-surface p-6 rounded-3xl flex flex-col gap-6 transition-all duration-300"
     >
       <div className="flex justify-between items-start">
         {/* Icon đổi màu */}
@@ -49,10 +45,8 @@ export default function DeviceCard({
         {/* Nút Toggle */}
         <button
           onClick={handleToggle}
-          disabled={disabled}
-          className={`w-12 h-6 rounded-full relative transition-all duration-300 ${
-            active ? "device-track-on" : "device-track-off"
-          }`}
+          className={`w-12 h-6 rounded-full relative transition-all duration-300 ${active ? "device-track-on" : "device-track-off"
+            }`}
         >
           <div
             className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-md transition-all duration-300 ${active ? "right-1" : "left-1"}`}
