@@ -57,3 +57,31 @@ Open [http://localhost:3000](http://localhost:3000) with your browser. You will 
 - `app/api/`: Backend Next.js API routes (including NextAuth handlers).
 - `components/`: Modular React components grouped by feature (`auth`, `dashboard`, `devices`, `layout`, `toggle`).
 - `prisma/`: Database models and connection configurations.
+
+## 📸 Interface Samples
+
+Below are previews of the system in action:
+
+### 1. Secure Authentication
+![Login Page](./public/screenshots/login.png)
+*A sleek and responsive login interface supporting secure email/password credentials and OAuth Google Account sign-in.*
+
+### 2. Live Dashboard Analytics
+![Dashboard](./public/screenshots/dashboard.png)
+*A real-time overview displaying active live sensors (Temperature, Humidity, Light, Door Status) and dynamic charts updating via MQTT.*
+
+### 3. Smart Device Management & Thresholds
+![Device Management](./public/screenshots/devices.png)
+*Individual device widgets allowing users to turn appliances on/off remotely, and set custom numerical thresholds for autonomous triggers.*
+
+### 4. User Profile & Settings
+![User Profile](./public/screenshots/profile.png)
+*A centralized hub where users can view their account details, customize their avatars, and navigate to advanced security or theme settings.*
+
+### 5. Global Notification System
+![Notifications](./public/screenshots/notifications.png)
+*A dedicated inbox capturing real-time automated warnings and critical alerts based on user-defined appliance thresholds and environmental sensor limits.*
+
+### 6. Settings
+![Settings](./public/screenshots/settings.png)
+*A centralized hub where users change theme, password *
