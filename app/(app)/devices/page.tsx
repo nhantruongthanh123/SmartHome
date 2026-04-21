@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import DeviceCard from "@/components/devices/DeviceCard";
-import { useSensorMQTT } from "@/src/hooks/useSensorMQTT";
+import { useSmartHome } from "@/src/contexts/SmartHomeContext";
 import { Sun, Wind, Droplets, Save, Loader2, DoorOpen, ShieldAlert, ShieldCheck, Clock } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { Threshold, DeviceType } from "@/src/types/threshold";
@@ -87,7 +87,7 @@ export default function DevicePage() {
     toggleDevice, isConnected,
     ledStatus, fanStatus, pumpStatus,
     doorStatus, motionStatus, doorTimer
-  } = useSensorMQTT();
+  } = useSmartHome();
   const [thresholds, setThresholds] = useState<Threshold[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState<DeviceType | string | null>(null);

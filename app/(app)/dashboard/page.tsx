@@ -1,7 +1,7 @@
 // Đường dẫn: app/(app)/dashboard/page.tsx
 "use client";
 import React, { useEffect, useState } from "react";
-import { useSensorMQTT } from "@/src/hooks/useSensorMQTT";
+import { useSmartHome } from "@/src/contexts/SmartHomeContext";
 import SensorCard from "@/components/dashboard/StatCard";
 import SensorChart from "@/components/dashboard/SensorChart";
 import {
@@ -26,7 +26,7 @@ export default function DashboardPage() {
     doorStatus, motionStatus, doorTimer,
     tempHistory, humiHistory, lightHistory,
     toggleDevice, isConnected
-  } = useSensorMQTT();
+  } = useSmartHome();
 
   const [isAutoMode, setIsAutoMode] = useState(false);
   const [thresholds, setThresholds] = useState<Threshold[]>([]);

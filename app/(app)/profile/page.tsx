@@ -376,50 +376,21 @@ export default function ProfilePage() {
                   <Shield size={22} />
                 </div>
                 <h4 className="text-lg font-bold card-title">
-                  Security & Preferences
+                  Account Management
                 </h4>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center justify-between p-5 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-50 dark:border-slate-800 rounded-3xl">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-card rounded-2xl text-blue-600 dark:text-blue-400 shadow-sm">
-                      <Bell size={20} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold card-title">
-                        Push Notifications
-                      </p>
-                      <p className="text-[10px] text-slate-400 font-medium">
-                        Alerts on triggers
-                      </p>
-                    </div>
-                  </div>
-                  <input
-                    type="checkbox"
-                    defaultChecked
-                    className="w-5 h-5 accent-blue-600 cursor-pointer"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-5 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-50 dark:border-slate-800 rounded-3xl">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-card rounded-2xl text-blue-600 dark:text-blue-400 shadow-sm">
-                      <Shield size={20} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold card-title">
-                        2FA Security
-                      </p>
-                      <p className="text-[10px] text-slate-400 font-medium">
-                        Extra account safety
-                      </p>
-                    </div>
-                  </div>
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 accent-blue-600 cursor-pointer"
-                  />
+              <div className="flex flex-col gap-4">
+                <p className="text-sm card-muted">
+                  Looking to change your password, update your appearance theme, or adjust advanced security preferences? Head over to your dedicated Settings dashboard.
+                </p>
+                <div>
+                  <button
+                    onClick={() => router.push('/settings')}
+                    className="px-6 py-3 bg-slate-50 dark:bg-slate-800 text-blue-600 dark:text-blue-400 text-sm font-bold rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-border"
+                  >
+                    Open Settings Page
+                  </button>
                 </div>
               </div>
             </div>

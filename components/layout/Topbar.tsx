@@ -1,17 +1,19 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Search, Bell, ChevronDown, User, Settings, LogOut } from "lucide-react";
+import { Bell, ChevronDown, User, Settings, LogOut, Menu } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { ThemeToggle } from "../toggle/ThemeToggle";
 import { UserProfile } from "@/src/types/user";
+import { useSmartHome } from "@/src/contexts/SmartHomeContext";
 
 export default function Topbar() {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [userData, setUserData] = useState<UserProfile | null>(null);
+  const { unreadCount, markAllAsRead, toggleSidebar } = useSmartHome();
  
   // Unified user object for display
   const userDisplay = {
@@ -55,25 +57,31 @@ export default function Topbar() {
 
   return (
     <header className="topbar-shell h-20 backdrop-blur-lg flex items-center justify-between px-8 shrink-0 z-50 sticky top-0">
-      <div className="flex-1 max-w-md relative group">
-        <Search
-          className="topbar-search-icon absolute left-4 top-1/2 -translate-y-1/2 transition-colors"
-          size={18}
-        />
-        <input
-          type="text"
-          placeholder="Search devices, scenes..."
-          className="topbar-search-input w-full rounded-2xl py-2.5 pl-12 pr-4 text-sm transition-all outline-none"
-        />
+      {/* 0. Hamburger Menu */}
+      <div className="flex flex-1 items-center gap-4">
+        <button
+          onClick={toggleSidebar}
+          className="p-2 -ml-2 rounded-xl text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        >
+          <Menu size={24} />
+        </button>
       </div>
 
       {/* 2. Cụm bên phải: Thông báo & Profile */}
       <div className="flex items-center gap-4">
         {/* Nút thông báo: Bo tròn mượt */}
-        <button className="topbar-notify-btn p-2.5 rounded-full transition-all relative group">
+        <Link 
+          href="/notifications"
+          onClick={markAllAsRead}
+          className="topbar-notify-btn p-2.5 rounded-full transition-all relative group flex items-center justify-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+        >
           <Bell size={20} />
-          <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white group-hover:animate-ping" />
-        </button>
+          {unreadCount > 0 && (
+            <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-white dark:border-[#0f172a] shadow-sm animate-pulse">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </Link>
 
         <div>
           <ThemeToggle />
