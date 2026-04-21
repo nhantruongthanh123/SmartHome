@@ -10,7 +10,7 @@ export function useSensorMQTT() {
   const [temperature, setTemperature] = useState<SensorData>({ value: 0, lastUpdated: null });
   const [humidity, setHumidity] = useState<SensorData>({ value: 0, lastUpdated: null });
   const [light, setLight] = useState<SensorData>({ value: 0, lastUpdated: null });
-  
+
   // States for device synchronization (two-way)
   const [ledStatus, setLedStatus] = useState<boolean>(false);
   const [fanStatus, setFanStatus] = useState<boolean>(false);
@@ -18,7 +18,7 @@ export function useSensorMQTT() {
   const [doorStatus, setDoorStatus] = useState<boolean>(false);
   const [motionStatus, setMotionStatus] = useState<boolean>(false);
   const [doorTimer, setDoorTimer] = useState<number>(0);
-  
+
   const [tempHistory, setTempHistory] = useState<ChartDataPoint[]>([]);
   const [humiHistory, setHumiHistory] = useState<ChartDataPoint[]>([]);
   const [lightHistory, setLightHistory] = useState<ChartDataPoint[]>([]);
@@ -149,14 +149,18 @@ export function useSensorMQTT() {
       if (topic.includes('bbc-temp')) {
         setTemperature({ value, lastUpdated: now });
         setTempHistory(prev => [...prev.slice(-19), newPoint]);
-      } 
+
+        // Cập nhật lên màn hình LCD
+        const lcdTopic = `${MQTT_CONFIG.username}/feeds/${MQTT_CONFIG.feeds.lcd}`;
+        mqttClient.publish(lcdTopic, `Temp: ${value} C`);
+      }
       else if (topic.includes('bbc-humidity')) {
         setHumidity({ value, lastUpdated: now });
-        setHumiHistory(prev => [...prev.slice(-19), newPoint]); 
-      } 
+        setHumiHistory(prev => [...prev.slice(-19), newPoint]);
+      }
       else if (topic.includes('bbc-light')) {
         setLight({ value, lastUpdated: now });
-        setLightHistory(prev => [...prev.slice(-19), newPoint]); 
+        setLightHistory(prev => [...prev.slice(-19), newPoint]);
       }
       // Update Device Status Feedback
       else if (topic.includes('bbc-led')) {
@@ -184,7 +188,7 @@ export function useSensorMQTT() {
       setIsConnected(false);
       clientRef.current = null;
     });
-    
+
     return () => {
       mqttClient.removeAllListeners();
       mqttClient.end(true);
@@ -259,15 +263,15 @@ export function useSensorMQTT() {
     }
   }, [doorStatus]);
 
-  return { 
+  return {
     temperature: temperature.value,
     tempUpdatedAt: temperature.lastUpdated,
     humidity: humidity.value,
     humiUpdatedAt: humidity.lastUpdated,
     light: light.value,
     lightUpdatedAt: light.lastUpdated,
-    tempHistory, humiHistory, lightHistory, 
+    tempHistory, humiHistory, lightHistory,
     ledStatus, fanStatus, pumpStatus, doorStatus, motionStatus, doorTimer,
-    toggleDevice, isConnected 
+    toggleDevice, isConnected
   };
 }

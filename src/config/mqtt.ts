@@ -15,5 +15,6 @@ export const MQTT_CONFIG = {
     fan: 'bbc-fan',
     pump: 'bbc-pump',
     door: 'bbc-door',
+    lcd: 'bbc-lcd',
   }
 };
