@@ -12,12 +12,10 @@ export default function Sidebar() {
   return (
     <aside className={`sidebar-shell h-screen flex flex-col gap-8 shrink-0 overflow-y-auto overflow-x-hidden transition-all duration-300 ${isSidebarOpen ? "w-64 p-6" : "w-[88px] py-6 px-3"}`}>
       {/* Logo Section */}
-      <div className={`flex items-center ${isSidebarOpen ? "gap-3 px-2" : "justify-center"}`}>
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-blue-200">
-          <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-        </div>
+      <Link href="/dashboard" className={`flex items-center hover:opacity-80 transition-opacity ${isSidebarOpen ? "gap-3 px-2" : "justify-center"}`}>
+        <img src="/icons/logo.png" alt="SmartHome Logo" className="w-8 h-8 shrink-0 object-contain" />
         {isSidebarOpen && <h1 className="sidebar-brand-title font-bold text-xl whitespace-nowrap">SmartHome</h1>}
-      </div>
+      </Link>
 
       {/* Main Navigation */}
       <nav className="flex flex-col gap-2">

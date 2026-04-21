@@ -7,6 +7,9 @@ import { ThemeProvider } from "next-themes";
 export const metadata: Metadata = {
   title: "Smart Home",
   description: "A smart home management system built with Next.js and React.",
+  icons: {
+    icon: "/icons/logo.png",
+  },
 };
 
 type RootLayoutProps = {
