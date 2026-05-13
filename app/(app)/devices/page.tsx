@@ -86,29 +86,12 @@ export default function DevicePage() {
   const {
     toggleDevice, isConnected,
     ledStatus, fanStatus, pumpStatus,
-    doorStatus, motionStatus, doorTimer
+    doorStatus, motionStatus, doorTimer,
+    thresholds, refreshThresholds
   } = useSmartHome();
-  const [thresholds, setThresholds] = useState<Threshold[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [savingKey, setSavingKey] = useState<DeviceType | string | null>(null);
 
-  useEffect(() => {
-    fetchThresholds();
-  }, []);
-
-  const fetchThresholds = async () => {
-    try {
-      const res = await fetch("/api/thresholds");
-      if (res.ok) {
-        const data = await res.json();
-        setThresholds(data);
-      }
-    } catch (err) {
-      toast.error("Failed to load thresholds");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSaveThreshold = async (type: DeviceType | string, minVal: number, maxVal: number, isActive: boolean) => {
     setSavingKey(type);
@@ -120,7 +103,7 @@ export default function DevicePage() {
       });
       if (res.ok) {
         toast.success(`${type} automation thresholds saved!`);
-        fetchThresholds();
+        await refreshThresholds();
       } else {
         toast.error("Failed to save changes");
       }

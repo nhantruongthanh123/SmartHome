@@ -25,28 +25,11 @@ export default function DashboardPage() {
     light, lightUpdatedAt,
     doorStatus, motionStatus, doorTimer,
     tempHistory, humiHistory, lightHistory,
-    toggleDevice, isConnected
+    toggleDevice, isConnected,
+    thresholds, isAutoMode, handleToggleAutoMode
   } = useSmartHome();
 
-  const [isAutoMode, setIsAutoMode] = useState(false);
-  const [thresholds, setThresholds] = useState<Threshold[]>([]);
   const [doorLogs, setDoorLogs] = useState<DoorLog[]>([]);
-
-  // --- FETCH THRESHOLDS (Dynamic Automation) ---
-  useEffect(() => {
-    const fetchThresholds = async () => {
-      try {
-        const res = await fetch("/api/thresholds");
-        if (res.ok) {
-          const data = await res.json();
-          setThresholds(data);
-        }
-      } catch (err) {
-        console.error("Failed to load thresholds for dashboard");
-      }
-    };
-    fetchThresholds();
-  }, []);
 
   // --- FETCH DOOR LOGS ---
   const fetchDoorLogs = async () => {
@@ -63,92 +46,24 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchDoorLogs();
-  }, [doorStatus]); // Refresh logs when door status changes
-
-  // --- SYNC AUTO MODE WITH THRESHOLDS ---
-  useEffect(() => {
-    if (thresholds.length > 0) {
-      // Auto Mode is ON if at least one threshold is active
-      const anyActive = thresholds.some(t => 
-        ["LIGHT", "TEMPERATURE", "HUMIDITY"].includes(t.deviceType) && t.isActive
-      );
-      setIsAutoMode(anyActive);
-    }
-  }, [thresholds]);
-
-  const handleToggleAutoMode = async () => {
-    const nextState = !isAutoMode;
-    const sensors = ["LIGHT", "TEMPERATURE", "HUMIDITY"];
-    
-    // Optimistic UI update
-    setIsAutoMode(nextState);
-    
-    try {
-      // Update all 3 sensor status in parallel
-      await Promise.all(sensors.map(type => 
-        fetch("/api/thresholds", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deviceType: type, isActive: nextState }),
-        })
-      ));
-      
-      // Re-fetch thresholds to ensure data consistency
-      const res = await fetch("/api/thresholds");
-      if (res.ok) {
-        const data = await res.json();
-        setThresholds(data);
-      }
-      toast.success(`Auto Mode successfully turned ${nextState ? "ON" : "OFF"}`);
-    } catch (err) {
-      console.error("Failed to toggle Auto Mode:", err);
-      toast.error("Failed to update Auto Mode. Please try again.");
-      // Revert state on error
-      setIsAutoMode(!nextState);
-    }
-  };
+  }, [doorStatus]);
 
   const getLimit = (type: DeviceType | string): Threshold => {
     const t = thresholds.find(item => item.deviceType === type);
     return t || { userId: '', deviceType: type, minVal: 0, maxVal: 0, isActive: false };
   };
 
-  // --- LOGIC MODULE 2: GIÁM SÁT & CẢNH BÁO ---
+  // --- LOGIC MODULE 2: CẢNH BÁO ---
   useEffect(() => {
-    // 1. Cảnh báo nhiệt độ (vẫn giữ cố định 35°C vì đây là mức nguy hiểm)
+    // Cảnh báo nhiệt độ nguy hiểm (35°C)
     if (temperature > 35) {
       toast.error("Warning: Temperature too high!", {
-        id: "temp-warning", // Sử dụng ID cố định để tránh chồng nhiều lớp
+        id: "temp-warning",
         description: `Current: ${temperature}°C. System will automatically activate cooling.`,
         duration: 5000,
       });
     }
-
-    // 2. Tự động điều khiển dựa trên ngưỡng động
-    if (isAutoMode && isConnected && thresholds.length > 0) {
-      const tempLimits = getLimit("TEMPERATURE");
-      const lightLimits = getLimit("LIGHT");
-      const humiLimits = getLimit("HUMIDITY");
-
-      // Logic Quạt (FAN) - Bật khi nóng (> maxVal), tắt khi mát (< minVal)
-      if (tempLimits.isActive) {
-        if (tempLimits.maxVal !== null && temperature > tempLimits.maxVal) toggleDevice("fan" as any, "ON");
-        else if (tempLimits.minVal !== null && temperature < tempLimits.minVal) toggleDevice("fan" as any, "OFF");
-      }
-
-      // Logic Đèn (LED) - Bật khi tối (< minVal), tắt khi sáng (> maxVal)
-      if (lightLimits.isActive) {
-        if (lightLimits.minVal !== null && light < lightLimits.minVal) toggleDevice("led" as any, "ON");
-        else if (lightLimits.maxVal !== null && light > lightLimits.maxVal) toggleDevice("led" as any, "OFF");
-      }
-
-      // Logic Máy bơm (PUMP) - Bật khi khô (< minVal), tắt khi đủ ẩm (> maxVal)
-      if (humiLimits.isActive) {
-        if (humiLimits.minVal !== null && humidity < humiLimits.minVal) toggleDevice("pump" as any, "ON");
-        else if (humiLimits.maxVal !== null && humidity > humiLimits.maxVal) toggleDevice("pump" as any, "OFF");
-      }
-    }
-  }, [temperature, humidity, light, isAutoMode, isConnected, toggleDevice, thresholds]);
+  }, [temperature]);
 
   return (
     <div className="flex flex-col gap-8 p-4 max-w-7xl mx-auto bg-main min-h-full">
