@@ -118,6 +118,7 @@ export default function DashboardPage() {
     // 1. Cảnh báo nhiệt độ (vẫn giữ cố định 35°C vì đây là mức nguy hiểm)
     if (temperature > 35) {
       toast.error("Warning: Temperature too high!", {
+        id: "temp-warning", // Sử dụng ID cố định để tránh chồng nhiều lớp
         description: `Current: ${temperature}°C. System will automatically activate cooling.`,
         duration: 5000,
       });

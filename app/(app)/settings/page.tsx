@@ -55,7 +55,7 @@ export default function SettingsPage() {
   return (
     <section className="flex flex-col gap-6 p-4 max-w-4xl mx-auto min-h-screen">
       <Toaster position="top-right" richColors />
-      
+
       <div>
         <h2 className="text-2xl font-extrabold card-title">Settings</h2>
         <p className="card-muted text-sm mt-1">Manage your account preferences and security.</p>
@@ -65,9 +65,8 @@ export default function SettingsPage() {
       <div className="flex gap-4 border-b border-border mb-4">
         <button
           onClick={() => setActiveTab("general")}
-          className={`pb-4 px-2 text-sm font-bold transition-all relative ${
-            activeTab === "general" ? "text-blue-600 dark:text-blue-400" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
-          }`}
+          className={`pb-4 px-2 text-sm font-bold transition-all relative ${activeTab === "general" ? "text-blue-600 dark:text-blue-400" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+            }`}
         >
           General
           {activeTab === "general" && (
@@ -76,9 +75,8 @@ export default function SettingsPage() {
         </button>
         <button
           onClick={() => setActiveTab("security")}
-          className={`pb-4 px-2 text-sm font-bold transition-all relative ${
-            activeTab === "security" ? "text-blue-600 dark:text-blue-400" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
-          }`}
+          className={`pb-4 px-2 text-sm font-bold transition-all relative ${activeTab === "security" ? "text-blue-600 dark:text-blue-400" : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+            }`}
         >
           Security
           {activeTab === "security" && (
@@ -90,40 +88,37 @@ export default function SettingsPage() {
       {/* CONTENT */}
       {activeTab === "general" && (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
-          
+
           {/* Theme selection */}
           <div className="bg-card p-6 rounded-3xl border border-border">
             <div className="mb-4">
               <h3 className="font-bold text-lg mb-1">Appearance</h3>
               <p className="text-sm card-muted">Customize how the SmartHome dashboard looks on your device.</p>
             </div>
-            
+
             <div className="grid grid-cols-3 gap-4">
               <button
                 onClick={() => setTheme("light")}
-                className={`p-4 rounded-2xl flex flex-col items-center gap-3 transition-all border-2 ${
-                  theme === "light" ? "border-blue-500 bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400" : "border-border hover:border-blue-300 bg-slate-50 dark:bg-slate-800/50 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                }`}
+                className={`p-4 rounded-2xl flex flex-col items-center gap-3 transition-all border-2 ${theme === "light" ? "border-blue-500 bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400" : "border-border hover:border-blue-300 bg-slate-50 dark:bg-slate-800/50 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                  }`}
               >
                 <Sun size={24} />
                 <span className="text-sm font-bold">Light</span>
               </button>
-              
+
               <button
                 onClick={() => setTheme("dark")}
-                className={`p-4 rounded-2xl flex flex-col items-center gap-3 transition-all border-2 ${
-                  theme === "dark" ? "border-blue-500 bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400" : "border-border hover:border-blue-300 bg-slate-50 dark:bg-slate-800/50 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                }`}
+                className={`p-4 rounded-2xl flex flex-col items-center gap-3 transition-all border-2 ${theme === "dark" ? "border-blue-500 bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400" : "border-border hover:border-blue-300 bg-slate-50 dark:bg-slate-800/50 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                  }`}
               >
                 <Moon size={24} />
                 <span className="text-sm font-bold">Dark</span>
               </button>
-              
+
               <button
                 onClick={() => setTheme("system")}
-                className={`p-4 rounded-2xl flex flex-col items-center gap-3 transition-all border-2 ${
-                  theme === "system" ? "border-blue-500 bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400" : "border-border hover:border-blue-300 bg-slate-50 dark:bg-slate-800/50 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                }`}
+                className={`p-4 rounded-2xl flex flex-col items-center gap-3 transition-all border-2 ${theme === "system" ? "border-blue-500 bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400" : "border-border hover:border-blue-300 bg-slate-50 dark:bg-slate-800/50 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                  }`}
               >
                 <Monitor size={24} />
                 <span className="text-sm font-bold">System</span>
@@ -136,7 +131,7 @@ export default function SettingsPage() {
 
       {activeTab === "security" && (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
-          
+
           <div className="bg-card p-6 rounded-3xl border border-border">
             <div className="flex items-start gap-4 mb-6">
               <div className="p-3 bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-2xl">
@@ -159,7 +154,7 @@ export default function SettingsPage() {
                     required
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:border-blue-500 outline-none transition-all"
+                    className="w-full bg-slate-50 dark:bg-slate-900 dark:text-slate-100 border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:border-blue-500 outline-none transition-all"
                     placeholder="Enter current password"
                   />
                 </div>
@@ -172,7 +167,7 @@ export default function SettingsPage() {
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-border rounded-xl px-4 py-3 text-sm focus:border-blue-500 outline-none transition-all"
+                  className="w-full bg-slate-50 dark:bg-slate-900 dark:text-slate-100 border border-border rounded-xl px-4 py-3 text-sm focus:border-blue-500 outline-none transition-all"
                   placeholder="Enter new password (min. 6 chars)"
                 />
               </div>
@@ -184,7 +179,7 @@ export default function SettingsPage() {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-border rounded-xl px-4 py-3 text-sm focus:border-blue-500 outline-none transition-all"
+                  className="w-full bg-slate-50 dark:bg-slate-900 dark:text-slate-100 border border-border rounded-xl px-4 py-3 text-sm focus:border-blue-500 outline-none transition-all"
                   placeholder="Re-enter new password"
                 />
               </div>
