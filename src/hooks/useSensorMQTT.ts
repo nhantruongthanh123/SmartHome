@@ -238,31 +238,6 @@ export function useSensorMQTT() {
     }
   }, [motionStatus, isConnected, toggleDevice]);
 
-  // Effect to log door status changes to the database
-  useEffect(() => {
-    if (lastLoggedStatusRef.current === doorStatus) return;
-
-    const logDoorEvent = async () => {
-      try {
-        await fetch('/api/door/log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: doorStatus ? 'OPEN' : 'CLOSE' }),
-        });
-        lastLoggedStatusRef.current = doorStatus;
-      } catch (err) {
-        console.error('Failed to log door event:', err);
-      }
-    };
-
-    if (lastLoggedStatusRef.current !== null) {
-      logDoorEvent();
-    } else {
-      // First run - just set the initial status without logging
-      lastLoggedStatusRef.current = doorStatus;
-    }
-  }, [doorStatus]);
-
   return {
     temperature: temperature.value,
     tempUpdatedAt: temperature.lastUpdated,

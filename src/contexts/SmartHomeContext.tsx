@@ -32,6 +32,9 @@ interface SmartHomeContextValue extends SensorMQTTType {
   isAutoMode: boolean;
   handleToggleAutoMode: () => Promise<void>;
   refreshThresholds: () => Promise<void>;
+  // Door Logs
+  doorLogs: any[];
+  refreshDoorLogs: () => Promise<void>;
 }
 
 const SmartHomeContext = createContext<SmartHomeContextValue | null>(null);
@@ -98,6 +101,55 @@ export function SmartHomeProvider({ children }: { children: React.ReactNode }) {
       setIsAutoMode(!nextState);
     }
   };
+
+  // --- DOOR LOGS ---
+  const [doorLogs, setDoorLogs] = useState<any[]>([]);
+  const lastLoggedStatusRef = useRef<boolean | null>(null);
+
+  const refreshDoorLogs = async () => {
+    try {
+      const res = await fetch("/api/door/log");
+      if (res.ok) {
+        const data = await res.json();
+        setDoorLogs(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch door logs in context", err);
+    }
+  };
+
+  useEffect(() => {
+    if (status === "authenticated") refreshDoorLogs();
+  }, [status]);
+
+  // Handle logging when door status changes
+  useEffect(() => {
+    if (lastLoggedStatusRef.current === mqttData.doorStatus) return;
+
+    const performLogging = async () => {
+      try {
+        const res = await fetch("/api/door/log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: mqttData.doorStatus ? "OPEN" : "CLOSE" }),
+        });
+        if (res.ok) {
+          // QUAN TRỌNG: Chỉ refresh logs SAU KHI POST thành công
+          await refreshDoorLogs();
+        }
+      } catch (err) {
+        console.error("Failed to log door event", err);
+      } finally {
+        lastLoggedStatusRef.current = mqttData.doorStatus;
+      }
+    };
+
+    if (lastLoggedStatusRef.current !== null) {
+      performLogging();
+    } else {
+      lastLoggedStatusRef.current = mqttData.doorStatus;
+    }
+  }, [mqttData.doorStatus]);
 
   const addNotification = (title: string, message: string, type: NotificationType) => {
     const newNotice: AppNotification = {
@@ -234,6 +286,8 @@ export function SmartHomeProvider({ children }: { children: React.ReactNode }) {
         isAutoMode,
         handleToggleAutoMode,
         refreshThresholds,
+        doorLogs,
+        refreshDoorLogs,
       }}
     >
       {children}

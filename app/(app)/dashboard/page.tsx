@@ -26,27 +26,9 @@ export default function DashboardPage() {
     doorStatus, motionStatus, doorTimer,
     tempHistory, humiHistory, lightHistory,
     toggleDevice, isConnected,
-    thresholds, isAutoMode, handleToggleAutoMode
+    thresholds, isAutoMode, handleToggleAutoMode,
+    doorLogs
   } = useSmartHome();
-
-  const [doorLogs, setDoorLogs] = useState<DoorLog[]>([]);
-
-  // --- FETCH DOOR LOGS ---
-  const fetchDoorLogs = async () => {
-    try {
-      const res = await fetch("/api/door/log");
-      if (res.ok) {
-        const data = await res.json();
-        setDoorLogs(data);
-      }
-    } catch (err) {
-      console.error("Failed to load door logs");
-    }
-  };
-
-  useEffect(() => {
-    fetchDoorLogs();
-  }, [doorStatus]);
 
   const getLimit = (type: DeviceType | string): Threshold => {
     const t = thresholds.find(item => item.deviceType === type);
